@@ -1,0 +1,78 @@
+﻿@model NIA_CRM.Models.Strategy
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Create</h1>
+
+<h4>Strategy</h4>
+<hr />
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <form asp-action="Create">
+        <div class="card card-body bg-light text-black">
+            
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <input type="hidden" asp-for="ID" />
+                <input type="hidden" asp-for="RowVersion" />
+
+                <div class="row">
+                    <!-- First Column: Name, Assignee, Date -->
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="StrategyName" class="control-label"></label>
+                            <span class="required-label">(required)</span>
+                            <input asp-for="StrategyName" class="form-control" />
+                            <span asp-validation-for="StrategyName" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="StrategyAssignee" class="control-label"></label>
+                            <input asp-for="StrategyAssignee" class="form-control" />
+                            <span asp-validation-for="StrategyAssignee" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="CreatedDate" class="control-label"></label>
+                            <input asp-for="CreatedDate" class="form-control" />
+                            <span asp-validation-for="CreatedDate" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <!-- Second Column: Term, Status -->
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="StrategyTerm" class="control-label"></label>
+                            <span class="required-label">(required)</span>
+                            <select asp-for="StrategyTerm" asp-items="Html.GetEnumSelectList<StrategyTerm>()" class="form-control"></select>
+                            <span asp-validation-for="StrategyTerm" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="StrategyStatus" class="control-label"></label>
+                            <span class="required-label">(required)</span>
+                            <select asp-for="StrategyStatus" asp-items="Html.GetEnumSelectList<StrategyStatus>()" class="form-control"></select>
+                            <span asp-validation-for="StrategyStatus" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Note Section Below -->
+                <div class="form-group">
+                    <label asp-for="StrategyNote" class="control-label"></label>
+                    <textarea asp-for="StrategyNote" class="form-control" rows="4"></textarea>
+                    <span asp-validation-for="StrategyNote" class="text-danger"></span>
+                </div>
+            
+        </div>
+            <div class="position-bottom-left">
+                <a class="btn btn-dark me-2" asp-action="Index">Back to Strategies</a>
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

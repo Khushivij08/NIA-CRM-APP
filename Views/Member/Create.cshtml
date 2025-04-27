@@ -1,0 +1,1258 @@
+﻿@model NIA_CRM.Models.Member
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+
+<h1>Add Member</h1>
+
+<hr />
+
+<partial name="_Notification" />
+<partial name="_MembershipAddModal" />
+<partial name="_TagAddModal" />
+<partial name="_SectorAddModal" />
+<partial name="_NAICSAddModal" />
+
+
+<div class="card card-body bg-light text-black">
+    <form asp-action="Create" method="post" enctype="multipart/form-data">
+        <div asp-validation-summary="All" class="text-danger"></div>
+
+        <!-- First Row: Logo and Basic Information -->
+        <div class="row">
+            <!-- First Column (Logo) -->
+            <div class="col-md-4 d-flex flex-column mb-3">
+                <label class="control-label custom-file-label">Picture File:</label>
+                <div id="drag-drop-area" class="drag-drop-area" ondrop="dropImage(event)" ondragover="allowDrop(event)">
+                    <p>Drag & Drop your image here</p>
+                    <button type="button" onclick="triggerFileSelect()" class="btn btn-primary" id="selectImageButton">Select Image</button>
+                    <input type="file" class="form-control" name="thePicture" id="thePicture" onchange="previewImage(event)" style="display: none;" />
+                </div>
+                <div id="imagePreviewContainer" style="display: none;">
+                    <img id="imagePreview" src="#" alt="Image Preview" style="max-width: 200px; max-height: 200px;" />
+                </div>
+                <div id="previewControls" style="display: none;">
+                    <button class="btn btn-light me-2" type="button" onclick="removeImage()">Remove</button>
+                    <button class="btn btn-light me-2" type="button" onclick="reselectLogo()">Reselect Logo</button>
+                    <button class="btn btn-secondary" type="button" onclick="startEditing()">Edit</button>
+                </div>
+                <div id="editControls" style="display: none;">
+                    <button class="btn btn-light me-2" type="button" onclick="cancelEditing()">Cancel</button>
+                    <button class="btn btn-secondary" type="button" onclick="saveCroppedImage()">Save</button>
+                </div>
+            </div>
+
+            <!-- Second Column (Member Info) -->
+            <div class="col-md-4">
+                <div class="form-group mb-3">
+                    <label asp-for="MemberName" class="control-label"></label>
+                    <span class="required-label">(required)</span>
+                    <input asp-for="MemberName" class="form-control" />
+                    <span asp-validation-for="MemberName" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="JoinDate" class="control-label"></label>
+                    <span class="required-label">(required)</span>
+                    <input asp-for="JoinDate" class="form-control" type="date" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                    <span asp-validation-for="JoinDate" class="text-danger"></span>
+                </div>
+
+
+                <div class="form-group mb-3">
+                    <label asp-for="MemberSize" class="control-label"></label>
+                    <span class="required-label">(required)</span>
+                    <input asp-for="MemberSize" class="form-control" />
+                    <span asp-validation-for="MemberSize" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="WebsiteUrl" class="control-label"></label>
+                    <input asp-for="WebsiteUrl" class="form-control" />
+                    <span asp-validation-for="WebsiteUrl" class="text-danger"></span>
+                </div>
+                <div class="form-group form-check mb-3">
+                    <label class="form-check-label">
+                        <input class="form-check-input" asp-for="IsPaid" /> @Html.DisplayNameFor(model => model.IsPaid)
+                    </label>
+                    <span asp-validation-for="IsPaid" class="text-danger"></span>
+                </div>
+            </div>
+
+            <!-- Third Column (Member note) -->
+            <div class="col-md-4 d-flex flex-column mb-3">
+                <label asp-for="MemberNote" class="control-label"></label>
+                <textarea asp-for="MemberNote" class="form-control flex-grow-1" style="height: auto;"></textarea>
+                <span asp-validation-for="MemberNote" class="text-danger"></span>
+            </div>
+
+        </div>
+
+        <!-- Multi-selection Fields in One Row with Equal Width and Vertical Separation -->
+        <!-- justify-content-center -->
+
+        <div class="row g-2 mb-3 mt-2">
+            <div class="col-md-6 border p-3">
+                <div class="d-flex justify-content-between mb-1">
+                    <h5 class="mb-3">Assign Membership</h5>
+                    <!-- Action Buttons -->
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-primary flex-grow-1" data-bs-toggle="modal" data-bs-target="#membershipModal" data-bs-placement="top" title="Add New Membership">
+                            <i class="fas fa-plus-circle"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-danger flex-grow-1 ms-2" data-bs-toggle="modal" data-bs-target="#deleteMembershipModal" data-bs-placement="top" title="Delete Membership">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="row g-2">
+                    <!-- Left Box: Selected Memberships -->
+                    <div class="col-md-6">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label">Membership Accredited</label>
+                            <button type="button" id="btnRightMembership" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Remove Membership">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                        @Html.ListBox("selectedOptionsMembership", (MultiSelectList)ViewData["selOptsMembership"], new { @size = 10, @class = "form-control w-100", id = "selectedOptionsMembership" })
+                    </div>
+
+                    <!-- Right Box: Available Memberships -->
+                    <div class="col-md-6">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label">Available Memberships</label>
+                            <button type="button" id="btnLeftMembership" class="btn btn-success btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Add Membership">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                        @Html.ListBox("availOptionsMembership", (MultiSelectList)ViewData["availOptsMembership"], new { @size = 10, @class = "form-control w-100", id = "availOptionsMembership" })
+                    </div>
+
+
+                </div>
+            </div>
+
+            <div class="col-md-6 border p-3">
+                <div class="d-flex justify-content-between mb-1">
+
+                    <h5 class="mb-3">Assign Tag</h5>
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-primary flex-grow-1" data-bs-toggle="modal" data-bs-target="#mtagModal" data-bs-placement="top" title="Add New Tag">
+                            <i class="fas fa-plus-circle"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-danger flex-grow-1 ms-2" data-bs-toggle="modal" data-bs-target="#deleteTagModal" data-bs-placement="top" title="Delete Tag">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="row g-2">
+                    <!-- Left Box: Selected Tags -->
+                    <div class="col-md-6">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label">Tag Accredited</label>
+                            <button type="button" id="btnRightTag" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Remove Tag">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                        @Html.ListBox("selectedOptionsTag", (MultiSelectList)ViewData["selOptsTag"], new { @size = 10, @class = "form-control w-100", id = "selectedOptionsTag" })
+                    </div>
+
+                    <!-- Right Box: Available Tags -->
+                    <div class="col-md-6">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label">Available Tags</label>
+                            <button type="button" id="btnLeftTag" class="btn btn-success btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Add Tag">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                        @Html.ListBox("availOptionsTag", (MultiSelectList)ViewData["availOptsTag"], new { @size = 10, @class = "form-control w-100", id = "availOptionsTag" })
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="col-12 d-flex gap-2">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row g-2 mb-3">
+
+            <div class="col-md-6 border p-3">
+                <div class="d-flex justify-content-between mb-1">
+                    <h5 class="mb-3">Assign Sector</h5>
+
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-primary flex-grow-1" data-bs-toggle="modal" data-bs-target="#sectorModal" data-bs-placement="top" title="Add New Sector">
+                            <i class="fas fa-plus-circle"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-danger flex-grow-1 ms-2" data-bs-toggle="modal" data-bs-target="#deleteSectorModal" data-bs-placement="top" title="Delete Sector">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="row g-2">
+                    <!-- Left Box: Selected Sectors -->
+                    <div class="col-md-6">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label">Sector Accredited</label>
+                            <button type="button" id="btnRightSector" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Remove Sector">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                        @Html.ListBox("selectedOptionsSector", (MultiSelectList)ViewData["selOptsSector"], new { @size = 10, @class = "form-control w-100", id = "selectedOptionsSector" })
+                    </div>
+
+                    <!-- Right Box: Available Sectors -->
+                    <div class="col-md-6">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label">Available Sectors</label>
+                            <button type="button" id="btnLeftSector" class="btn btn-success btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Add Sector">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                        @Html.ListBox("availOptionsSector", (MultiSelectList)ViewData["availOptsSector"], new { @size = 10, @class = "form-control w-100", id = "availOptionsSector" })
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="col-12 d-flex gap-2">
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 border p-3">
+                <div class="d-flex justify-content-between mb-1">
+                    <h5 class="mb-3">Assign NAICS Code</h5>
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-primary flex-grow-1" data-bs-toggle="modal" data-bs-target="#naicsModal" data-bs-placement="top" title="Add New NAICS Code">
+                            <i class="fas fa-plus-circle"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-danger flex-grow-1 ms-2" data-bs-toggle="modal" data-bs-target="#deleteNaicsCodeModal" data-bs-placement="top" title="Delete NAICS Code">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="row g-2">
+                    <!-- Left Box: Selected NAICS Codes -->
+                    <div class="col-md-6">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label">NAICS Code Accredited</label>
+                            <button type="button" id="btnRightNaicsCode" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Remove NAICS Code">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                        @Html.ListBox("selectedOptionsNaicsCode", (MultiSelectList)ViewData["selOptsNaiceCode"], new { @size = 10, @class = "form-control w-100", id = "selectedOptionsNaicsCode" })
+                    </div>
+
+                    <!-- Right Box: Available NAICS Codes -->
+                    <div class="col-md-6">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label">Available NAICS Codes</label>
+                            <button type="button" id="btnLeftNaicsCode" class="btn btn-success btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Add NAICS Code">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                        @Html.ListBox("availOptionsNaicsCode", (MultiSelectList)ViewData["availOptsNaicsCode"], new { @size = 10, @class = "form-control w-100", id = "availOptionsNaicsCode" })
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="col-12 d-flex gap-2">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <!-- Buttons outside the card -->
+        <div class="position-bottom-left mt-3">
+            <a asp-action="Index" class="btn btn-dark me-2">Back to List</a>
+            <input type="submit" value="Next" id="btnSubmit" class="btn btn-primary" />
+        </div>
+    </form>
+</div>
+
+
+<!-- Membership Delete Modal -->
+<div class="modal fade" id="deleteMembershipModal" tabindex="-1" aria-labelledby="deleteMembershipModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteMembershipModalLabel">Delete Membership Accredited</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-controller="MembershipType" asp-action="Delete" method="post" id="createMembershipDeletionForm">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <select id="deleteMembershipSelect" class="form-control">
+                        <!-- Options will be populated by JS -->
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-danger" id="deleteMembership">Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Tag Delete Modal -->
+<div class="modal fade" id="deleteTagModal" tabindex="-1" aria-labelledby="deleteTagModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-controller="MTag" asp-action="Delete" method="post" id="createTagDeletionForm">
+                @Html.AntiForgeryToken()
+
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteTagModalLabel">Delete Tag Accredited</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <select id="deleteTagSelect" class="form-control">
+                        <!-- Options will be populated by JS -->
+                    </select>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-danger" id="deleteTagBtn">Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!-- Sector Delete Modal -->
+<!-- Sector Delete Modal -->
+<div class="modal fade" id="deleteSectorModal" tabindex="-1" aria-labelledby="deleteSectorModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-controller="Sector" asp-action="Delete" method="post" id="createSectorDeletionForm">
+                @Html.AntiForgeryToken()
+
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteSectorModalLabel">Delete Sector Accredited</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <select id="deleteSectorSelect" name="id" class="form-control">
+                        <!-- Options will be populated by JS -->
+                    </select>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-danger" id="deleteSectorBtn">Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!-- NAICS Code Delete Modal -->
+<div class="modal fade" id="deleteNaicsCodeModal" tabindex="-1" aria-labelledby="deleteNaicsCodeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-controller="NAICSCodes" asp-action="Delete" method="post" id="createNaicsCodeDeletionForm">
+                @Html.AntiForgeryToken()
+
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteNaicsCodeModalLabel">Delete NAICS Code Accredited</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <select id="deleteNaicsCodeSelect" name="id" class="form-control">
+                        <!-- Options will be populated by JS -->
+                    </select>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-danger" id="deleteNaicsCodeBtn">Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Repeat similar modals and buttons for Tag, Sector, and NAICS Code -->
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/js/multiselect.js"></script>
+    <script src="~/js/refreshDDL.js"></script>
+
+
+    <script>
+        var cropper;
+        var originalImageData = null;
+        var currentImageData = null;
+        var imageWasCropped = false;
+
+        // Trigger the file input when the button is clicked
+        function triggerFileSelect() {
+            document.getElementById('thePicture').click();
+        }
+
+        // Prevent default behavior for dragging over
+        function allowDrop(event) {
+            event.preventDefault();
+        }
+
+        // Handle the file drop
+        function dropImage(event) {
+            event.preventDefault();
+            const file = event.dataTransfer.files[0];
+            document.getElementById('thePicture').files = event.dataTransfer.files;
+            displayImage(file);
+        }
+
+        // Preview the selected image
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                displayImage(file);
+            }
+        }
+
+        // Function to display the selected image as a preview
+        function displayImage(file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const imgElement = document.getElementById('imagePreview');
+                imgElement.style.display = 'block';
+                imgElement.src = e.target.result;
+
+                // Store both original and current image data initially
+                originalImageData = e.target.result;
+                currentImageData = e.target.result;
+                imageWasCropped = false;
+
+                // Show the preview controls
+                document.getElementById('previewControls').style.display = 'block';
+                document.getElementById('editControls').style.display = 'none';
+
+                // Show the image preview container and hide the drag-and-drop section
+                document.getElementById('imagePreviewContainer').style.display = 'block';
+                document.getElementById('drag-drop-area').style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Initialize the cropper when the user clicks "Edit"
+        function startEditing() {
+            const imagePreview = document.getElementById('imagePreview');
+            const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+
+            // Always use original image for cropping
+            if (originalImageData) {
+                imagePreview.src = originalImageData;
+            }
+
+            // Get the image dimensions
+            const imgWidth = imagePreview.naturalWidth;
+            const imgHeight = imagePreview.naturalHeight;
+
+            // Set the container size to match the image size (max 300px for both width and height)
+            const maxWidth = 300;
+            const maxHeight = 300;
+            const containerWidth = Math.min(imgWidth, maxWidth);
+            const containerHeight = Math.min(imgHeight, maxHeight);
+
+            imagePreviewContainer.style.width = `${containerWidth}px`;
+            imagePreviewContainer.style.height = `${containerHeight}px`;
+
+            // If cropper already exists, destroy it first
+            if (cropper) {
+                cropper.destroy();
+            }
+
+            // Initialize the cropper with the ability to resize the crop box
+            cropper = new Cropper(imagePreview, {
+                aspectRatio: 1,  // Maintain a square aspect ratio
+                viewMode: 1,     // Crop box will be within the canvas bounds
+                autoCropArea: 0.65,
+                responsive: true,
+                background: true,
+                cropBoxResizable: true,  // Allow resizing the crop box
+                cropBoxMovable: true,    // Allow moving the crop box
+                dragMode: 'move',        // Allow the image to be moved inside the cropper
+                minContainerWidth: 100,  // Set minimum container width
+                minContainerHeight: 100, // Set minimum container height
+                maxWidth: maxWidth,      // Maximum crop box width
+                maxHeight: maxHeight,    // Maximum crop box height
+            });
+
+            // Switch to editing mode: hide preview buttons, show editing buttons
+            document.getElementById('previewControls').style.display = 'none';
+            document.getElementById('editControls').style.display = 'block';
+
+            // Hide the preview image since the cropper will show it
+            imagePreview.style.display = 'none';
+        }
+
+        // Save the cropped image when the user clicks "Save"
+        function saveCroppedImage() {
+            if (cropper) {
+                var canvas = cropper.getCroppedCanvas({
+                    width: 200,  // Set the width of the cropped image
+                    height: 200  // Set the height of the cropped image
+                });
+
+                var imagePreview = document.getElementById('imagePreview');
+                if (imagePreview) {
+                    // Update current image with the cropped version
+                    currentImageData = canvas.toDataURL();
+                    imagePreview.src = currentImageData;
+                    imagePreview.style.display = 'block';
+
+                    // Set a flag that image was cropped
+                    imageWasCropped = true;
+
+                    // Update the actual file input with the cropped image
+                    updateFileInput(currentImageData);
+
+                    // Hide the cropper and show the preview container
+                    document.getElementById('editControls').style.display = 'none';
+                    document.getElementById('previewControls').style.display = 'block';
+                }
+
+                // Destroy the cropper after saving
+                cropper.destroy();
+                cropper = null;
+            }
+        }
+
+        // Convert data URL to File object and update the file input
+        function updateFileInput(dataUrl) {
+            // Convert base64 to blob
+            var byteString = atob(dataUrl.split(',')[1]);
+            var mimeString = dataUrl.split(',')[0].split(':')[1].split(';')[0];
+            var ab = new ArrayBuffer(byteString.length);
+            var ia = new Uint8Array(ab);
+
+            for (var i = 0; i < byteString.length; i++) {
+                ia[i] = byteString.charCodeAt(i);
+            }
+
+            var blob = new Blob([ab], { type: mimeString });
+            var file = new File([blob], "cropped_image.jpg", { type: "image/jpeg" });
+
+            // Create a DataTransfer object and add our file
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+
+            // Set the file input's files
+            document.getElementById('thePicture').files = dataTransfer.files;
+        }
+
+        // Cancel editing and revert back to the current image
+        function cancelEditing() {
+            // Revert back to the current preview image (which might be already cropped)
+            const imagePreview = document.getElementById('imagePreview');
+            if (imagePreview && currentImageData) {
+                imagePreview.src = currentImageData;
+                imagePreview.style.display = 'block';
+            }
+
+            // Hide cropper controls and show the preview controls
+            document.getElementById('editControls').style.display = 'none';
+            document.getElementById('previewControls').style.display = 'block';
+
+            // Destroy the cropper and reset
+            if (cropper) {
+                cropper.destroy();
+                cropper = null;
+            }
+        }
+
+        // Remove the image (reset everything)
+        function removeImage() {
+            const imagePreview = document.getElementById('imagePreview');
+            imagePreview.src = '';  // Clear the preview image
+            imagePreview.style.display = 'none';  // Hide the preview image
+            document.getElementById('previewControls').style.display = 'none';  // Hide preview controls
+            document.getElementById('imagePreviewContainer').style.display = 'none';
+
+            // Clear file input
+            document.getElementById('thePicture').value = '';
+
+            // Reset stored image data
+            originalImageData = null;
+            currentImageData = null;
+            imageWasCropped = false;
+
+            // Show the drag-and-drop area again
+            document.getElementById('drag-drop-area').style.display = 'block';
+        }
+
+        // Reselect Logo (reset and allow the user to select another file)
+        function reselectLogo() {
+            const inputFile = document.getElementById('thePicture');
+            inputFile.value = '';  // Reset the file input field
+            document.getElementById('imagePreview').style.display = 'none';  // Hide the previous preview
+            document.getElementById('previewControls').style.display = 'none';  // Hide preview controls
+            document.getElementById('imagePreviewContainer').style.display = 'none';
+
+            // Reset stored image data
+            originalImageData = null;
+            currentImageData = null;
+            imageWasCropped = false;
+
+            // Show the drag-and-drop area again and open the file explorer
+            document.getElementById('drag-drop-area').style.display = 'block';
+            inputFile.click();  // Open file explorer again
+        }
+    </script>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            // Function to populate delete select dropdown
+            function populateDeleteSelect(listId, selectId) {
+                $(selectId).empty();
+                var options = $(listId).children('option');
+                options.each(function () {
+                    var option = new Option($(this).text(), $(this).val());
+                    $(selectId).append(option);
+                });
+            }
+
+            // Bind modal show events to populate dropdowns
+            $('#deleteMembershipModal').on('show.bs.modal', function () {
+                populateDeleteSelect('#availOptionsMembership', '#deleteMembershipSelect');
+            });
+
+            $('#deleteTagModal').on('show.bs.modal', function () {
+                populateDeleteSelect('#availOptionsTag', '#deleteTagSelect');
+            });
+
+            $('#deleteSectorModal').on('show.bs.modal', function () {
+                populateDeleteSelect('#availOptionsSector', '#deleteSectorSelect');
+            });
+
+            $('#deleteNaicsCodeModal').on('show.bs.modal', function () {
+                populateDeleteSelect('#availOptionsNaicsCode', '#deleteNaicsCodeSelect');
+            });
+
+            // Delete Membership
+            $('#createMembershipDeletionForm').submit(function (e) {
+                e.preventDefault(); // Stop normal form submission
+                ClearErrors();
+                var selectedId = $('#deleteMembershipSelect').val();
+                 var token = $('input[name="__RequestVerificationToken"]').val(); // ✅ token!
+
+                console.log(selectedId);
+                if (!selectedId) {
+                    alert('Please select a membership type to delete.');
+                    return;
+                }
+
+                $.ajax({
+                    url: '/MembershipType/Delete',
+                    type: 'POST',
+                    data: { __RequestVerificationToken: token,id: selectedId },
+                    success: function (response, status, xhr) {
+                    if (response.success) {
+                        console.log("XHR Status:", xhr.status); // Example xhr usage
+                        console.log("Deleted ID:", response.deletedId);
+                        alert(response.message);
+                        $('#deleteMembershipSelect option[value="' + response.deletedId + '"]').remove();
+                        $('#deleteMembershipModal').modal('hide');
+                        
+                        // 🆕 Reset the create form and clear errors
+                        document.getElementById("createMembershipDeletionForm").reset(); // Adjust ID if different
+                        ClearErrors();
+
+                        // 🆕 Build skip list (selected items)
+                        var qstring = "";
+                        var skipData = $("#selectedOptionsMembership option");
+                        $.each(skipData, function () {
+                            qstring += $(this).val() + "|";
+                        });
+
+                        // 🆕 Refresh the dropdown list (availOptionsMembership)
+                        var URI = "/MembershipType/GetMembershipTypes?skip=" + qstring.slice(0, -1);
+                        refreshDDL("availOptionsMembership", URI, true, "No Data Available", false, null, false);
+
+
+                    } else {
+                        alert('Failed to delete: ' + response.message);
+                    }
+                },
+                error: function (xhr, status, error) {
+                        console.error("XHR error:", xhr);
+                        alert('An unexpected error occurred: ' + xhr.responseText);
+                    }
+                });
+            });
+        
+
+            // Delete Tag
+            $('#createTagDeletionForm').submit(function (e) {
+                e.preventDefault(); // Stop normal form submission
+
+                var selectedId = $('#deleteTagSelect').val();
+                var token = $('input[name="__RequestVerificationToken"]').val(); // ✅ token!
+
+                console.log(selectedId);
+                if (!selectedId) {
+                    alert('Please select a tag to delete.');
+                    return;
+                }
+
+                $.ajax({
+                    url: '/MTag/Delete',
+                    type: 'POST',
+                    data: { __RequestVerificationToken: token, id: selectedId },
+                    success: function (response, status, xhr) {
+                        if (response.success) {
+                            console.log("XHR Status:", xhr.status); // Example xhr usage
+                            console.log("Deleted ID:", response.deletedId);
+                            alert(response.message);
+                            $('#deleteTagSelect option[value="' + response.deletedId + '"]').remove();
+                            $('#deleteTagModal').modal('hide');
+
+                            document.getElementById("createTagDeletionForm").reset(); // to clear the data in the popup form
+                            //ClearErrors();
+                            // This will create a delimited list of the keys of the selected options and
+                            // we will pass it as a QueryString parameter when we get the new data
+                            var qstring = "";
+                            // Get the collection of currently selected options
+                            var skipData = $("#selectedOptionsTag option");
+                            $.each(skipData, function () {
+                                qstring += $(this).val() + "|";
+                            });
+                            var URI = "/MTag/GetMTags?skip=" + qstring.slice(0, -1);
+                            refreshDDL("availOptionsTag", URI, true, "No Data Available", false, null, false);
+
+
+                        } else {
+                            alert('Failed to delete: ' + response.message);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("XHR error:", xhr);
+                        alert('An unexpected error occurred: ' + xhr.responseText);
+                    }
+                });
+            });
+
+
+
+            // Delete Sector
+            $('#createSectorDeletionForm').submit(function (e) {
+                e.preventDefault(); // Stop normal form submission
+
+                var selectedId = $('#deleteSectorSelect').val();
+                var token = $('input[name="__RequestVerificationToken"]').val(); // ✅ token!
+
+                console.log(selectedId);
+                if (!selectedId) {
+                    alert('Please select a sector to delete.');
+                    return;
+                }
+
+                $.ajax({
+                    url: '/Sector/Delete',
+                    type: 'POST',
+                    data: { __RequestVerificationToken: token, id: selectedId },
+                    success: function (response, status, xhr) {
+                        if (response.success) {
+                            console.log("XHR Status:", xhr.status); // Example xhr usage
+                            console.log("Deleted ID:", response.deletedId);
+                            alert(response.message);
+                            $('#deleteSectorSelect option[value="' + response.deletedId + '"]').remove();
+                            $('#deleteSectorModal').modal('hide');
+
+                            document.getElementById("createSectorDeletionForm").reset(); // to clear the data in the popup form
+                            //ClearErrors();
+                            // This will create a delimited list of the keys of the selected options and
+                            // we will pass it as a QueryString parameter when we get the new data
+                            var qstring = "";
+                            // Get the collection of currently selected options
+                            var skipData = $("#selectedOptionsSector option");
+                            $.each(skipData, function () {
+                                qstring += $(this).val() + "|";
+                            });
+                            var URI = "/Sector/GetSectors?skip=" + qstring.slice(0, -1);
+                            refreshDDL("availOptionsSector", URI, true, "No Data Available", false, null, false);
+
+                        } else {
+                            alert('Failed to delete: ' + response.message);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("XHR error:", xhr);
+                        alert('An unexpected error occurred: ' + xhr.responseText);
+                    }
+                });
+            });
+
+
+            // Delete NAICS Code
+            $('#createNaicsCodeDeletionForm').submit(function (e) {
+                e.preventDefault(); // Stop normal form submission
+
+                var selectedId = $('#deleteNaicsCodeSelect').val();
+                var token = $('input[name="__RequestVerificationToken"]').val(); // ✅ token!
+
+                console.log(selectedId);
+                if (!selectedId) {
+                    alert('Please select a NAICS code to delete.');
+                    return;
+                }
+
+                $.ajax({
+                    url: '/NAICSCodes/Delete',
+                    type: 'POST',
+                    data: { __RequestVerificationToken: token, id: selectedId },
+                    success: function (response, status, xhr) {
+                        if (response.success) {
+                            console.log("XHR Status:", xhr.status); // Example xhr usage
+                            console.log("Deleted ID:", response.deletedId);
+                            alert(response.message);
+                            $('#deleteNaicsCodeSelect option[value="' + response.deletedId + '"]').remove();
+                            $('#deleteNaicsCodeModal').modal('hide');
+
+                             document.getElementById("createNaicsCodeDeletionForm").reset(); // to clear the data in the popup form
+                            //ClearErrors();
+                            // This will create a delimited list of the keys of the selected options and
+                            // we will pass it as a QueryString parameter when we get the new data
+                            var qstring = "";
+                            // Get the collection of currently selected options
+                            var skipData = $("#selectedOptionsNaicsCode option");
+                            $.each(skipData, function () {
+                                qstring += $(this).val() + "|";
+                            });
+                            var URI = "/NAICSCodes/GetNAICSCode?skip=" + qstring.slice(0, -1);
+                            refreshDDL("availOptionsNaicsCode", URI, true, "No Data Available", false, null, false);
+                        } else {
+                            alert('Failed to delete: ' + response.message);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("XHR error:", xhr);
+                        alert('An unexpected error occurred: ' + xhr.responseText);
+                    }
+                });
+
+            });
+            // Helper function to handle errors
+            function handleAjaxError(xhr) {
+                var errorMessages = [];
+                switch (xhr.status) {
+                    case 401:
+                        errorMessages.push("You must be logged in first.");
+                        break;
+                    case 403:
+                        errorMessages.push("You are not authorized for this action.");
+                        break;
+                    default:
+                        //Messages coming from the Model State Errors
+                        errorMessages = xhr.responseText.split("|").slice(0, -1);
+                }
+
+                if (!errorMessages.some((str) => str !== "")) {
+                    errorMessages.push("Error: Unable to complete operation");
+                }
+
+                // Put the messages in the ErrorList ul
+                var ul = document.getElementById("ErrorList");
+                for (var i = 0; i < errorMessages.length; i++) {
+                    var errorMessage = errorMessages[i];
+                    var li = document.createElement("li");
+                    li.innerHTML = errorMessage;
+                    ul.appendChild(li);
+                }
+            }
+        });
+
+        function ClearErrors() {
+            // Empty out the list of validation errors if there are any
+            var ul = document.getElementById("ErrorList");
+            while (ul.firstChild) {
+                ul.removeChild(ul.firstChild);
+            }
+        }
+    </script>
+
+    <!-- Membership Type Add Modal -->
+    <script type="text/javascript">
+        $('#submitMembershipTypeCreate').click(function (event) {
+            event.preventDefault();
+            ClearErrors();
+            var form = $('#createMembershipTypeForm');
+            if (form.valid()) {
+                $.ajax({
+                    type: "POST",
+                    url: form.attr('action'),
+                    data: form.serialize(),
+                    success: function () {
+                        $('#membershipModal').modal('hide');
+                    },
+                    error: function (xhr) { //Note: xhr is the XMLHttpRequest
+                        var errorMessages = [];
+                        switch (xhr.status) {
+                            case 401:
+                                errorMessages.push("You must be logged in first.");
+                                break;
+                            case 403:
+                                errorMessages.push("You are not authorized for this action.");
+                                break;
+                            default:
+                                //Messages coming from the Model State Errors
+                                //We split on the | delimeter and the .slice removes the last one
+                                errorMessages = xhr.responseText.split("|").slice(0, -1);
+                        }
+                        //This checks if there are any elements with some content
+                        //and if not then it provides a default feedback message.
+                        if (!errorMessages.some((str) => str !== "")) {
+                          errorMessages.push("Error: Unable to complete operation");
+                        }
+                        //Put the messages in the ErrorList ul contained in the 'ValidationSummary' div.
+                        var ul = document.getElementById("ErrorList");
+                        for (var i = 0; i < errorMessages.length; i++) {
+                          var errorMessage = errorMessages[i];
+                          var li = document.createElement("li");
+                          li.innerHTML = errorMessage;
+                          ul.appendChild(li);
+                        }
+                    }
+                });
+            }
+            return false;
+        });
+
+        $('#membershipModal').on('hide.bs.modal', function () {
+            document.getElementById("createMembershipTypeForm").reset(); // to clear the data in the popup form
+            ClearErrors();
+            // This will create a delimited list of the keys of the selected options and
+            // we will pass it as a QueryString parameter when we get the new data
+            var qstring = "";
+            // Get the collection of currently selected options
+            var skipData = $("#selectedOptionsMembership option");
+            $.each(skipData, function () {
+                qstring += $(this).val() + "|";
+            });
+            var URI = "/MembershipType/GetMembershipTypes?skip=" + qstring.slice(0, -1);
+            refreshDDL("availOptionsMembership", URI, true, "No Data Available", false, null, false);
+        });
+
+        function ClearErrors() {
+            // Empty out the list of validation errors if there are any
+            var ul = document.getElementById("ErrorList");
+            while (ul.firstChild) {
+                ul.removeChild(ul.firstChild);
+            }
+        }
+    </script>
+
+    <!-- MTag  Add Modal -->
+    <script type="text/javascript">
+        $('#submitMTagCreate').click(function (event) {
+            event.preventDefault();
+            ClearErrors();
+            var form = $('#createMTagForm');
+            if (form.valid()) {
+                $.ajax({
+                    type: "POST",
+                    url: form.attr('action'),
+                    data: form.serialize(),
+                    success: function () {
+                        $('#mtagModal').modal('hide');
+                    },
+                    error: function (xhr) { //Note: xhr is the XMLHttpRequest
+                        var errorMessages = [];
+                        switch (xhr.status) {
+                            case 401:
+                                errorMessages.push("You must be logged in first.");
+                                break;
+                            case 403:
+                                errorMessages.push("You are not authorized for this action.");
+                                break;
+                            default:
+                                //Messages coming from the Model State Errors
+                                //We split on the | delimeter and the .slice removes the last one
+                                errorMessages = xhr.responseText.split("|").slice(0, -1);
+                        }
+                        //This checks if there are any elements with some content
+                        //and if not then it provides a default feedback message.
+                        if (!errorMessages.some((str) => str !== "")) {
+                          errorMessages.push("Error: Unable to complete operation");
+                        }
+                        //Put the messages in the ErrorList ul contained in the 'ValidationSummary' div.
+                        var ul = document.getElementById("ErrorList");
+                        for (var i = 0; i < errorMessages.length; i++) {
+                          var errorMessage = errorMessages[i];
+                          var li = document.createElement("li");
+                          li.innerHTML = errorMessage;
+                          ul.appendChild(li);
+                        }
+                    }
+                });
+            }
+            return false;
+        });
+
+        $('#mtagModal').on('hide.bs.modal', function () {
+            document.getElementById("createMTagForm").reset(); // to clear the data in the popup form
+            ClearErrors();
+            // This will create a delimited list of the keys of the selected options and
+            // we will pass it as a QueryString parameter when we get the new data
+            var qstring = "";
+            // Get the collection of currently selected options
+            var skipData = $("#selectedOptionsTag option");
+            $.each(skipData, function () {
+                qstring += $(this).val() + "|";
+            });
+            var URI = "/MTag/GetMTags?skip=" + qstring.slice(0, -1);
+            refreshDDL("availOptionsTag", URI, true, "No Data Available", false, null, false);
+        });
+
+        function ClearErrors() {
+            // Empty out the list of validation errors if there are any
+            var ul = document.getElementById("ErrorList");
+            while (ul.firstChild) {
+                ul.removeChild(ul.firstChild);
+            }
+        }
+    </script>
+
+    <!-- Sector  Add Modal -->
+    <script type="text/javascript">
+        $('#submitSectorCreate').click(function (event) {
+            event.preventDefault();
+            ClearErrors();
+            var form = $('#createSectorForm');
+            if (form.valid()) {
+                $.ajax({
+                    type: "POST",
+                    url: form.attr('action'),
+                    data: form.serialize(),
+                    success: function () {
+                        $('#sectorModal').modal('hide');
+                    },
+                    error: function (xhr) { //Note: xhr is the XMLHttpRequest
+                        var errorMessages = [];
+                        switch (xhr.status) {
+                            case 401:
+                                errorMessages.push("You must be logged in first.");
+                                break;
+                            case 403:
+                                errorMessages.push("You are not authorized for this action.");
+                                break;
+                            default:
+                                //Messages coming from the Model State Errors
+                                //We split on the | delimeter and the .slice removes the last one
+                                errorMessages = xhr.responseText.split("|").slice(0, -1);
+                        }
+                        //This checks if there are any elements with some content
+                        //and if not then it provides a default feedback message.
+                        if (!errorMessages.some((str) => str !== "")) {
+                          errorMessages.push("Error: Unable to complete operation");
+                        }
+                        //Put the messages in the ErrorList ul contained in the 'ValidationSummary' div.
+                        var ul = document.getElementById("ErrorList");
+                        for (var i = 0; i < errorMessages.length; i++) {
+                          var errorMessage = errorMessages[i];
+                          var li = document.createElement("li");
+                          li.innerHTML = errorMessage;
+                          ul.appendChild(li);
+                        }
+                    }
+                });
+            }
+            return false;
+        });
+
+        $('#sectorModal').on('hide.bs.modal', function () {
+            document.getElementById("createSectorForm").reset(); // to clear the data in the popup form
+            ClearErrors();
+            // This will create a delimited list of the keys of the selected options and
+            // we will pass it as a QueryString parameter when we get the new data
+            var qstring = "";
+            // Get the collection of currently selected options
+            var skipData = $("#selectedOptionsSector option");
+            $.each(skipData, function () {
+                qstring += $(this).val() + "|";
+            });
+            var URI = "/Sector/GetSectors?skip=" + qstring.slice(0, -1);
+            refreshDDL("availOptionsSector", URI, true, "No Data Available", false, null, false);
+        });
+
+        function ClearErrors() {
+            // Empty out the list of validation errors if there are any
+            var ul = document.getElementById("ErrorList");
+            while (ul.firstChild) {
+                ul.removeChild(ul.firstChild);
+            }
+        }
+    </script>
+
+    <!-- NAICSCode Add Modal -->
+    <script type="text/javascript">
+        $('#submitNAICSCodeCreate').click(function (event) {
+            event.preventDefault();
+            ClearErrors();
+            var form = $('#createNAICSCodeForm');
+            if (form.valid()) {
+                $.ajax({
+                    type: "POST",
+                    url: form.attr('action'),
+                    data: form.serialize(),
+                    success: function () {
+                        $('#naicsModal').modal('hide');
+                    },
+                    error: function (xhr) { //Note: xhr is the XMLHttpRequest
+                        var errorMessages = [];
+                        switch (xhr.status) {
+                            case 401:
+                                errorMessages.push("You must be logged in first.");
+                                break;
+                            case 403:
+                                errorMessages.push("You are not authorized for this action.");
+                                break;
+                            default:
+                                //Messages coming from the Model State Errors
+                                //We split on the | delimeter and the .slice removes the last one
+                                errorMessages = xhr.responseText.split("|").slice(0, -1);
+                        }
+                        //This checks if there are any elements with some content
+                        //and if not then it provides a default feedback message.
+                        if (!errorMessages.some((str) => str !== "")) {
+                          errorMessages.push("Error: Unable to complete operation");
+                        }
+                        //Put the messages in the ErrorList ul contained in the 'ValidationSummary' div.
+                        var ul = document.getElementById("ErrorList");
+                        for (var i = 0; i < errorMessages.length; i++) {
+                          var errorMessage = errorMessages[i];
+                          var li = document.createElement("li");
+                          li.innerHTML = errorMessage;
+                          ul.appendChild(li);
+                        }
+                    }
+                });
+            }
+            return false;
+        });
+
+        $('#naicsModal').on('hide.bs.modal', function () {
+            document.getElementById("createNAICSCodeForm").reset(); // to clear the data in the popup form
+            ClearErrors();
+            // This will create a delimited list of the keys of the selected options and
+            // we will pass it as a QueryString parameter when we get the new data
+            var qstring = "";
+            // Get the collection of currently selected options
+            var skipData = $("#selectedOptionsNaicsCode option");
+            $.each(skipData, function () {
+                qstring += $(this).val() + "|";
+            });
+            var URI = "/NAICSCodes/GetNAICSCode?skip=" + qstring.slice(0, -1);
+            refreshDDL("availOptionsNaicsCode", URI, true, "No Data Available", false, null, false);
+        });
+
+        function ClearErrors() {
+            // Empty out the list of validation errors if there are any
+            var ul = document.getElementById("ErrorList");
+            while (ul.firstChild) {
+                ul.removeChild(ul.firstChild);
+            }
+        }
+    </script>
+
+
+    <!-- NAICSCode Add Modal -->
+    <script type="text/javascript">
+        // Ensure the change event handler for the dropdown is attached only once
+        $('#deleteMembershipSelect').change(function () {
+            var selectedId = $(this).val(); // Get selected ID from dropdown
+            $('#membershipTypeId').val(selectedId); // Set hidden field with selected ID
+            console.log(selectedId);
+        });
+
+        $('#submitMembershipTypeDelete').click(function (event) {
+            event.preventDefault();
+            ClearErrors();
+
+            var form = $('#deleteMembershipTypeForm');
+            var membershipTypeId = $("#deleteMembershipSelect").val(); // Get selected ID
+            $('#membershipTypeId').val(membershipTypeId);
+            console.log(membershipTypeId);
+            // Validate the form
+            if (form.valid()) {
+                $.ajax({
+                    type: "POST",
+                    url: form.attr('action'),  // The form's action URL
+                    data: form.serialize() + "&id=" + membershipTypeId, // Ensure MemberID is included
+                    success: function (response) {
+                        if (response.success) {
+                            $('#deleteMembershipModal').modal('hide');
+                            //alert(response.message); // Optionally show success message
+                            location.reload(); // Refresh page to reflect changes
+                        } else {
+                            console.error("Error: " + response.message);
+                            showErrorMessage(response.message); // Show error messages
+                        }
+                    },
+                    error: function (xhr) {
+                        console.error("Error: ", xhr);
+                        showErrorMessage("An unexpected error occurred."); // General error message
+                    }
+                });
+            }
+            return false;
+        });
+
+        // Function to show error messages in the modal
+        function showErrorMessage(message) {
+            var ul = document.getElementById("ErrorList");
+            ul.innerHTML = "";  // Clear previous errors
+
+            // Split and display each error message
+            var errors = message.split("|");
+            errors.forEach(function (error) {
+                var li = document.createElement("li");
+                li.innerHTML = error;
+                ul.appendChild(li);
+            });
+        }
+
+        // Function to handle error messages from AJAX response
+        function handleAjaxErrors(xhr) {
+            var errorMessages = [];
+            switch (xhr.status) {
+                case 401:
+                    errorMessages.push("You must be logged in first.");
+                    break;
+                case 403:
+                    errorMessages.push("You are not authorized for this action.");
+                    break;
+                default:
+                    errorMessages = xhr.responseText.split("|").slice(0, -1);
+            }
+
+            if (!errorMessages.some((str) => str !== "")) {
+                errorMessages.push("Error: Unable to complete operation");
+            }
+
+            showErrorMessage(errorMessages.join('|')); // Show the error messages as a string
+        }
+
+        // Function to clear previous error messages
+        function ClearErrors() {
+            var ul = document.getElementById("ErrorList");
+            while (ul.firstChild) {
+                ul.removeChild(ul.firstChild);
+            }
+        }
+    </script>
+}

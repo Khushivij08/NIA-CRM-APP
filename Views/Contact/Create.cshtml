@@ -1,0 +1,160 @@
+﻿@model NIA_CRM.Models.Contact
+
+@{
+    ViewData["Title"] = "Create";
+}
+<partial name="_Notification" />
+
+<h1>Create Contact</h1>
+
+@if (ViewBag.MemberName != null)
+{
+    <div class="alert alert-info">
+        <strong>Member: </strong> @ViewBag.MemberName
+    </div>
+}
+<hr />
+
+<form asp-action="Create">
+    <div class="card card-body bg-light text-black">
+        <div asp-validation-summary="All" class="text-danger"></div>
+        <input type="hidden" name="memberId" value="@ViewBag.MemberId" />
+        <input type="hidden" name="isNewMember" value="@(TempData["IsNewMember"] as bool? == true ? "true" : "false")" />
+
+        <div class="row">
+            <!-- First Column -->
+            <div class="col-md-6">
+                @if (ViewBag.MemberName == null)
+                {
+                    <div class="form-group">
+                        <label for="selectedMemberId" class="control-label">Select Member</label>
+                        <span class="required-label">(required)</span>
+                        <select name="selectedMemberId" class="form-control" asp-items="ViewBag.Members"></select>
+                    </div>
+                }
+               
+
+                <div class="form-group">
+                    <label asp-for="FirstName" class="control-label"></label>
+                    <span class="required-label">(required)</span>
+                    <input asp-for="FirstName" class="form-control" placeholder="Enter First Name" />
+                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="MiddleName" class="control-label"></label>
+                    <input asp-for="MiddleName" class="form-control" placeholder="Enter Middle Name" />
+                    <span asp-validation-for="MiddleName" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="LastName" class="control-label"></label>
+                    <span class="required-label">(required)</span>
+                    <input asp-for="LastName" class="form-control" placeholder="Enter Last Name" />
+                    <span asp-validation-for="LastName" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Department" class="control-label"></label>
+                    <input asp-for="Department" class="form-control" placeholder="Enter Department" />
+                    <span asp-validation-for="Department" class="text-danger"></span>
+                </div>
+            </div>
+
+            <!-- Second Column -->
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label asp-for="Title" class="control-label"></label>
+                    <input asp-for="Title" class="form-control" placeholder="Enter Title" />
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Email" class="control-label"></label>
+                    <span class="required-label">(required)</span>
+                    <input asp-for="Email" class="form-control" placeholder="Enter Email Address" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Phone" class="control-label"></label>
+                    <span class="required-label">(required)</span>
+                    <input asp-for="Phone" id="phoneInput" class="form-control" maxlength="14"
+                           placeholder="(123) 456-7890" />
+                    <span asp-validation-for="Phone" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="LinkedInUrl" class="control-label"></label>
+                    <input asp-for="LinkedInUrl" class="form-control" placeholder="Enter LinkedIn Profile URL" />
+                    <span asp-validation-for="LinkedInUrl" class="text-danger"></span>
+                </div>
+
+                <div class="form-group form-check">
+                    <label class="form-check-label">
+                        <input class="form-check-input" asp-for="IsVip" /> @Html.DisplayNameFor(model => model.IsVip)
+                    </label>
+                    <span asp-validation-for="IsVip" class="text-danger"></span>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Notes Section (Full Width) -->
+        <div class="row mt-3">
+            <div class="col-md-12">
+                <div class="form-group">
+                    <label asp-for="ContactNote" class="control-label"></label>
+                    <textarea asp-for="ContactNote" class="form-control" rows="3" placeholder="Add any notes or comments here..."></textarea>
+                    <span asp-validation-for="ContactNote" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+    </div>
+    <div class="position-bottom-left">
+
+        <a class="btn btn-dark me-2" asp-action="Index">Back to Contacts</a>
+        <input class="btn btn-primary me-2" type="submit" value="Create" />
+    </div>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        const phoneInput = document.getElementById('phoneInput');
+
+        phoneInput.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, ''); // Remove non-digit characters
+
+            if (e.inputType === 'deleteContentBackward' && value.length <= 3) {
+                e.target.value = value; // Allow deleting the first bracket
+                return;
+            }
+
+            // Auto-format: (123) 456-7890
+            if (value.length === 0) {
+                e.target.value = "";
+            } else if (value.length <= 3) {
+                e.target.value = `(${value}`;
+            } else if (value.length <= 6) {
+                e.target.value = `(${value.substring(0, 3)}) ${value.substring(3)}`;
+            } else {
+                e.target.value = `(${value.substring(0, 3)}) ${value.substring(3, 6)}-${value.substring(6, 10)}`;
+            }
+
+            
+        });
+
+        phoneInput.addEventListener('keydown', (e) => {
+            // Handle backspacing the "(" bracket when length <= 1
+            if (e.key === "Backspace" && phoneInput.value === "(") {
+                phoneInput.value = "";
+            }
+        });
+    </script>
+
+}

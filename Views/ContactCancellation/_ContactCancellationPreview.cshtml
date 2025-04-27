@@ -1,0 +1,101 @@
+﻿@model NIA_CRM.Models.ContactCancellation
+
+<div>
+    <div class="d-flex justify-content-between align-items-center px-2 mb-3">
+        <h3>Contact Archive Preview</h3>
+        <input type="button" name="btnClose" value="X" id="btnClose" class="btn btn-danger" />
+    </div>
+
+    <div class="d-flex">
+        @if (Model.Contact?.ContactThumbnail?.Content != null)
+        {
+            string imageBase64 = Convert.ToBase64String(Model.Contact.ContactThumbnail.Content);
+            string imageSrc = string.Format("data:{0};base64,{1}", Model.Contact.ContactThumbnail.MimeType, imageBase64);
+            <img src="@imageSrc" alt="Profile Picture of @Model?.Contact.Summary"
+                 title="Profile Picture of @Model?.Contact.Summary" class="img-fluid rounded" />
+        }
+        else
+        {
+            <img src="images/blankProfile.jpg" alt="Blank profile picture"
+                 title="Blank profile picture" class="img-fluid rounded" style="margin-right: 5px !important;" />
+        }
+
+        <div>
+            <p><strong>Contact Name:</strong> <br />@Model.Contact.Summary</p>
+            <p>
+                <strong>Contact Email:</strong> <br />
+                <a href="mailto:@Model.Contact.Email">@Model.Contact.Email</a>
+            </p>
+
+            <p>
+                <strong>Phone:</strong> <br />
+                <a href="tel:@Model.Contact.Phone" id="phoneNumber">@Model.Contact.Phone</a>
+            </p>
+
+            <p><a href="@Model.Contact.LinkedInUrl" target="_blank">View LinkedIn</a></p>
+        </div>
+    </div>
+
+
+
+    <div class="card card-body bg-light text-black">
+        <h5>Industry:</h5>
+        @{
+            var industry = Model.Contact.MemberContacts.FirstOrDefault()?.Member; // Single industry object
+
+            if (industry != null)
+            {
+                string industryName = industry.MemberName; // Industry Name
+                string industrySize = industry.MemberSize.ToString(); // Industry Size
+                string? industryWebsite = industry.WebsiteUrl; // Website URL
+
+                <strong>Industry Name:</strong> @industryName <br />
+                <strong>Industry Size:</strong> @industrySize <br />
+                <strong>Website:</strong>
+                @if (!string.IsNullOrEmpty(industryWebsite))
+                {
+                    <a href="@industryWebsite" target="_blank">@industryWebsite</a>
+                }
+                else
+                {
+                    <span>N/A</span>
+                }
+            }
+            else
+            {
+                <p>No industry data available.</p>
+            }
+        }
+
+
+
+
+        <div id="responseMessage"></div>
+        @if (User.IsInRole("Admin"))
+        {
+
+            <form id="saveNoteForm" asp-action="SaveCancellationNote" asp-controller="ContactCancellation" method="post">
+                <input type="hidden" id="ContactId" name="id" value="@Model.ID" />
+                <label for="Note">Cancellation Note</label>
+                <textarea id="Note" name="note" placeholder="Enter your note..." class="form-control">@Model.CancellationNote</textarea>
+                <input type="button" id="saveNoteBtn" value="Save Note" class="btn btn-primary mt-2" />
+            </form>
+        }
+    </div>
+    <div class="sticky-buttons">
+        <div class="sticky-buttons-container">
+            @if (User.IsInRole("Admin"))
+            {
+                <a class="btn btn-primary" asp-action="Delete" asp-route-id="@Model.ID">Activate</a>
+                <a class="btn btn-dark" asp-controller="Contact" asp-action="Edit" asp-route-id="@Model.ID">Edit Contact</a>
+                <a class="btn btn-dark" asp-action="Edit" asp-route-id="@Model.ID">Edit Archiving</a>
+            }
+            <a class="btn btn-primary" asp-controller="Member" asp-action="Details" asp-route-id="@Model.ID" asp-route-memberId="@Model.ID">Details</a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/PhoneNumber.js"></script>
+
+}

@@ -1,0 +1,69 @@
+﻿@model NIA_CRM.Models.Opportunity
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1>Details</h1>
+
+<div>
+    <h4>Opportunity</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.OpportunityName)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.OpportunityName)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.OpportunityAction)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.OpportunityAction)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.POC)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.POC)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Account)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Account)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Interaction)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Interaction)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.LastContact)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.LastContact)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.OpportunityStatus)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.OpportunityStatus)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.OpportunityPriority)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.OpportunityPriority)
+        </dd>
+    </dl>
+</div>
+<div>
+    @if (User.IsInRole("Admin"))
+    {
+        <a asp-action="Edit" asp-route-id="@Model?.ID">Edit</a>
+    } |
+    <a asp-action="Index">Back to Opportunities</a>
+</div>

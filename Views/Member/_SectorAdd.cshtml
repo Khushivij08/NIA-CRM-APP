@@ -1,0 +1,25 @@
+﻿@model NIA_CRM.Models.Sector
+
+<form asp-controller="Sector" asp-action="Create" id="createSectorForm">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="text-danger validation-summary-errors">
+                <ul id="ErrorList"></ul>
+            </div>
+
+            <label asp-for="SectorName" class="control-label">Sector Name</label>
+            <input asp-for="SectorName" class="form-control" />
+            <span asp-validation-for="SectorName" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="SectorDescription" class="control-label">Sector Description</label>
+            <textarea asp-for="SectorDescription" class="form-control"></textarea>
+            <span asp-validation-for="SectorDescription" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <input type="submit" value="Create" id="submitSectorCreate" class="btn btn-outline-secondary" />
+        </div>
+    </div>
+</form>

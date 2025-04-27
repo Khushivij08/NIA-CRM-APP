@@ -1,0 +1,129 @@
+﻿@model NIA_CRM.Models.Member
+
+<div>
+    <div class="d-flex justify-content-between align-items-center px-2 mb-3">
+        <h3>Member Preview</h3>
+        <input type="button" name="btnClose" value="X" id="btnClose" class="btn btn-danger" />
+    </div>
+
+    @if (Model.MemberThumbnail?.Content != null)
+    {
+        string imageBase64 = Convert.ToBase64String(Model.MemberThumbnail.Content);
+        string imageSrc = string.Format("data:" + Model.MemberThumbnail.MimeType + ";base64,{0}", imageBase64);
+        <img src="@imageSrc" alt="Profile Picture of @Model?.MemberName"
+             title="Profile Picture of @Model?.MemberName" class="img-fluid rounded" />
+    }
+    else
+    {
+        <img src="images/blankProfile.jpg" alt="blank profile picture"
+             title="blank profile picture" class="img-fluid rounded" style="margin-right: 5px !important;" />
+    }
+
+    <div class="card card-body bg-light text-black">
+        <div>
+            <dt>Member Name:</dt>
+            <dd class="col-sm-8">
+                @Html.DisplayFor(model => model.MemberName)
+            </dd>
+
+            <dt><strong>Address:</strong></dt>
+            @if (Model.Address != null)
+            {
+                <dd>
+                    @Model.Address.AddressLine1<br />
+                    @if (!string.IsNullOrEmpty(Model.Address.AddressLine2))
+                    {
+                        @Model.Address.AddressLine2
+                        <br />
+                    }
+                    @Model.Address.City, @Model.Address.StateProvince, @Model.Address.PostalCode<br />
+                </dd>
+            }
+            else
+            {
+                <p>No addresses available.</p>
+            }
+
+            <dt class="col-sm-4">Membership Type:</dt>
+            <dd class="col-sm-8">
+                @{
+                    int membershipCount = Model.MemberMembershipTypes.Count;
+                    if (membershipCount > 0)
+                    {
+                        var firstMembershipType = Model.MemberMembershipTypes.FirstOrDefault().MembershipType.TypeName; // Get the first membership type
+                        if (membershipCount > 1)
+                        {
+                            string membershipList = ""; // HTML string of membership type names separated by <br /> tags
+                            var memberships = Model.MemberMembershipTypes.ToList();
+                            for (int i = 1; i < membershipCount; i++) // Skip the first because we have it already
+                            {
+                                membershipList += $"{memberships[i].MembershipType.TypeName}<br />";
+                            }
+                            <a class="role='button'" data-bs-toggle="collapse" href="#collapseMembership@(Model.ID)_preview"
+                               aria-expanded="false" aria-controls="collapseMembership@(Model.ID)_preview">
+                                @firstMembershipType <span class="badge bg-info">@membershipCount</span>
+                            </a>
+                            <div class="collapse" id="collapseMembership@(Model.ID)_preview">
+                                @Html.Raw(membershipList)
+                            </div>
+                        }
+                        else
+                        {
+                            @firstMembershipType
+                        }
+                    }
+                    else
+                    {
+                        <p>No membership type available.</p>
+                    }
+                }
+            </dd>
+
+
+
+
+            <dt class="col-sm-4">Website:</dt>
+            <dd class="col-sm-8">
+                <a href="@Model.WebsiteUrl" target="_blank">
+                    @Html.DisplayFor(model => model.WebsiteUrl)
+                </a>
+            </dd>
+
+            <dt class="col-sm-4">Join Date:</dt>
+            <dd class="col-sm-8">
+                @Html.DisplayFor(model => model.JoinDate)
+            </dd>
+
+            <dt class="col-sm-4">Time Since Joined:</dt>
+            <dd class="col-sm-8">
+                @Model.TimeSinceJoined
+            </dd>
+        </div>
+
+        <div id="responseMessage"></div>
+        @if (User.IsInRole("Admin"))
+        {
+            <form id="saveNoteForm" asp-action="SaveMemberNote" asp-controller="Member" method="post">
+                <input type="hidden" id="MemberId" name="id" value="@Model.ID" />
+                <textarea id="Note" name="note" placeholder="Enter your note..." class="form-control">@Model.MemberNote</textarea>
+                <input type="button" id="saveNoteBtn" value="Save Note" class="btn btn-primary mt-2" />
+            </form>
+        }
+    </div>
+
+    <div class="sticky-buttons mt-3">
+        <div class="sticky-buttons-container">
+            @if (User.IsInRole("Admin"))
+            {
+                <button type="button" class="btn btn-dark"
+                        data-bs-toggle="modal"
+                        data-bs-target="#addCancellationModal"
+                        data-id="@Model.ID">
+                    Archive Member
+                </button>
+                <a class="btn btn-dark" asp-controller="Member" asp-action="Edit" asp-route-id="@Model.ID">Edit</a>
+            }
+            <a class="btn btn-primary" asp-controller="Member" asp-action="Details" asp-route-id="@Model.ID">Details</a>
+        </div>
+    </div>
+</div>

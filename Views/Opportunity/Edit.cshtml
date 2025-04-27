@@ -1,0 +1,95 @@
+﻿@model NIA_CRM.Models.Opportunity
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h1>Edit</h1>
+
+<h4>Opportunity</h4>
+<hr />
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        
+            <form asp-action="Edit">
+            <div class="card card-body bg-light text-black">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <input type="hidden" asp-for="ID" />
+                <input type="hidden" asp-for="RowVersion" />
+
+                <div class="row">
+                    <!-- First Column: Name, POC, Account, Last Contact -->
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="OpportunityName" class="control-label"></label>
+                            <span class="required-label">(required)</span>
+                            <input asp-for="OpportunityName" class="form-control" />
+                            <span asp-validation-for="OpportunityName" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="POC" class="control-label"></label>
+                            <input asp-for="POC" class="form-control" />
+                            <span asp-validation-for="POC" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="Account" class="control-label"></label>
+                            <input asp-for="Account" class="form-control" />
+                            <span asp-validation-for="Account" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <!-- Second Column: Status, Priority -->
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="OpportunityStatus" class="control-label"></label>
+                            <span class="required-label">(required)</span>
+                            <select asp-for="OpportunityStatus" asp-items="Html.GetEnumSelectList<OpportunityStatus>()" class="form-control"></select>
+                            <span asp-validation-for="OpportunityStatus" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="OpportunityPriority" class="control-label"></label>
+                            <span class="required-label">(required)</span>
+                            <select asp-for="OpportunityPriority" asp-items="Html.GetEnumSelectList<OpportunityPriority>()" class="form-control"></select>
+                            <span asp-validation-for="OpportunityPriority" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="LastContact" class="control-label"></label>
+                            <input asp-for="LastContact" class="form-control" />
+                            <span asp-validation-for="LastContact" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Below Section: Two Textboxes for Action & Interaction -->
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="OpportunityAction" class="control-label"></label>
+                            <span class="required-label">(required)</span>
+                            <textarea asp-for="OpportunityAction" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="OpportunityAction" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="Interaction" class="control-label"></label>
+                            <textarea asp-for="Interaction" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="Interaction" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+            <div class="position-bottom-left">
+                <a class="btn btn-dark me-2" asp-action="Index">Back to Opportunities</a>
+                <input type="submit" value="Save" class="btn btn-primary px-4" />
+            </div>
+            </form>
+        
+    </div>
+</div>
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

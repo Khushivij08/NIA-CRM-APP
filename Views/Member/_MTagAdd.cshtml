@@ -1,0 +1,25 @@
+﻿@model NIA_CRM.Models.MTag
+
+<form asp-controller="MTag" asp-action="Create" id="createMTagForm">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="text-danger validation-summary-errors">
+                <ul id="ErrorList"></ul>
+            </div>
+
+            <label asp-for="MTagName" class="control-label">Tag Name</label>
+            <input asp-for="MTagName" class="form-control" />
+            <span asp-validation-for="MTagName" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="MTagDescription" class="control-label">Tag Description</label>
+            <textarea asp-for="MTagDescription" class="form-control"></textarea>
+            <span asp-validation-for="MTagDescription" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <input type="submit" value="Create" id="submitMTagCreate" class="btn btn-outline-secondary" />
+        </div>
+    </div>
+</form>

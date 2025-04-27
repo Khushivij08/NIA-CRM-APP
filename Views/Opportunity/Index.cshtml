@@ -1,0 +1,475 @@
+﻿@model IEnumerable<NIA_CRM.Models.Opportunity>
+
+@{
+    ViewData["Title"] = "Index";
+    var sortField = ViewData["sortField"]?.ToString();
+    var sortDirection = ViewData["sortDirection"]?.ToString();
+}
+
+<h1>Opportunities</h1>
+
+<partial name="_ErrorMessage" />
+<partial name="_SuccessMessage" />
+
+
+@if (User.IsInRole("Admin"))
+{
+    <form asp-action="ImportOpportunitiesFromExcel" method="post" enctype="multipart/form-data">
+        <!-- Help Icon for import Instructions -->
+        <i class="fa fa-question-circle help-icon ms-2" onclick="toggleVisibility('importHelp')" title="Click for import instructions"></i>
+
+        <div class="d-flex align-items-center" style="padding-bottom: 10px;">
+
+            <button type="submit" class="btn btn-dark me-2" style="min-width: 150px;">
+                <i class="fa fa-file-import"></i> Import Excel
+            </button>
+
+            <input type="file" name="file" class="form-control" required />
+        </div>
+    </form>
+
+    <!-- Import Help Info -->
+    <div id="importHelp" class="info-box" style="display: none; border: 1px solid #ccc; padding: 10px; margin: 10px; position: relative;">
+        <button class="close-btn" onclick="toggleVisibility('importHelp')">×</button>
+        <h5>Import Instructions</h5>
+        <p>
+            To import opportunity details, upload an Excel file (.xlsx) with properly formatted data.
+            The first row of your file should contain the correct column headers to ensure a successful import.
+        </p>
+        <p>
+            Required fields include <strong>Opportunity Name</strong>, <strong>Opportunity Action</strong>,
+            <strong>POC (Point of Contact)</strong>, and <strong>Account</strong>.
+            Other fields such as <strong>Interaction</strong>, <strong>Last Contact</strong> (YYYY-MM-DD format),
+            <strong>Opportunity Status</strong> (e.g., Qualification, Proposal, Negotiation), and
+            <strong>Opportunity Priority</strong> (e.g., Low, Medium, High) should be correctly formatted.
+        </p>
+
+        <p>
+            Ensure the following column structure:
+            <ul>
+                <li><strong>Column 1:</strong> Opportunity Name (Text, Required)</li>
+                <li><strong>Column 2:</strong> Opportunity Action (Text, Required)</li>
+                <li><strong>Column 3:</strong> POC (Text, Point of Contact, Required)</li>
+                <li><strong>Column 4:</strong> Account (Text, Required)</li>
+                <li><strong>Column 5:</strong> Interaction (Text, Optional notes on recent engagement)</li>
+                <li><strong>Column 6:</strong> Last Contact (Date, YYYY-MM-DD format)</li>
+                <li><strong>Column 7:</strong> Opportunity Status (Text, e.g., Qualification, Proposal, Negotiation)</li>
+                <li><strong>Column 8:</strong> Opportunity Priority (Text, e.g., Low, Medium, High)</li>
+            </ul>
+        </p>
+
+        <a href="/files/OpportunityImportSample.xlsx" download style="font-weight:bold;">
+            Download Sample Excel File for Import
+        </a>
+        <p>
+            Ensure all required data is included and headers match exactly, otherwise, the import may fail.
+        </p>
+    </div>
+}
+
+
+<!-- Modal for Exporting Opportunities -->
+<div class="modal fade" id="exportOpportunitiesModal" tabindex="-1" aria-labelledby="exportOpportunitiesModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exportOpportunitiesModalLabel">Select Fields to Export</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="exportOpportunitiesForm" asp-action="ExportSelectedOpportunitiesFields" method="post">
+                    @* Hidden fields to pass the filters to the Export Controller *@
+                    <input type="hidden" name="SearchString" id="modalSearchString" value="@ViewData["SearchString"]">
+                    <input type="hidden" name="OpportunityAction" id="modalOpportunityAction" value="@ViewData["OpportunityActionFilter"]">
+                    <input type="hidden" name="Interaction" id="modalInteraction" value="@ViewData["InteractionFilter"]">
+                    <input type="hidden" name="Status" id="modalStatus" value="@ViewData["StatusFilter"]">
+                    <input type="hidden" name="Priority" id="modalPriority" value="@ViewData["PriorityFilter"]">
+
+                    <div class="form-check mb-3">
+                        <input type="checkbox" class="form-check-input" id="includeFilters" name="applyFilters" value="true" checked>
+                        <label class="form-check-label" for="includeFilters">Include current filters in export</label>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <input type="checkbox" name="selectedFields" value="OpportunityName" id="OpportunityName" checked>
+                            <label for="OpportunityName">Opportunity Name</label>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" name="selectedFields" value="OpportunityAction" id="OpportunityAction" checked>
+                            <label for="OpportunityAction">Action</label>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" name="selectedFields" value="POC" id="POC" checked>
+                            <label for="POC">POC</label>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" name="selectedFields" value="Account" id="Account" checked>
+                            <label for="Account">Account</label>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" name="selectedFields" value="Interaction" id="Interaction" checked>
+                            <label for="Interaction">Interaction</label>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" name="selectedFields" value="LastContact" id="LastContact" checked>
+                            <label for="LastContact">Last Contact</label>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" name="selectedFields" value="OpportunityStatus" id="OpportunityStatus" checked>
+                            <label for="OpportunityStatus">Status</label>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" name="selectedFields" value="OpportunityPriority" id="OpportunityPriority" checked>
+                            <label for="OpportunityPriority">Priority</label>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="exportOpportunitiesForm" class="btn btn-dark" data-bs-dismiss="modal">
+                    <i class="fa fa-file-excel text-white"></i> Export
+                </button>
+                <!-- Help Icon for Export Instructions -->
+                <i class="fa fa-question-circle help-icon ms-2" onclick="toggleVisibility('exportHelp')" title="Click for export instructions"></i>
+            </div>
+
+            <!-- Export Help Info -->
+            <div id="exportHelp" class="info-box" style="display: none; border: 1px solid #ccc; padding: 10px; margin: 10px; position: relative;">
+                <button class="close-btn" onclick="toggleVisibility('exportHelp')">×</button>
+                <h5>Export Instructions</h5>
+                <p>
+                    Select the fields you wish to export by checking the corresponding boxes.
+                    If you have applied filters, you can choose to export the filtered data. Then click the "Export" button to download the file.
+                </p>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<form asp-action="Index" method="get" aria-labelledby="form-title">
+    <input type="hidden" name="sortDirection" value="@sortDirection" />
+    <input type="hidden" name="sortField" value="@sortField" />
+
+    <!-- Filter/Search Section -->
+    <div class="m-auto flex-grow-1">
+        <div class="form-horizontal mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex flex-wrap">
+
+                    <button class="btn btn-dark @ViewData["Filtering"] me-2 mb-2" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFilter">
+                        Filter/Search @ViewData["numberFilters"]
+                    </button>
+
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <!-- Export Button to Open Opportunities Modal -->
+                        <button type="button" class="btn btn-dark me-2 mb-2" data-bs-toggle="modal" data-bs-target="#exportOpportunitiesModal">
+                            <i class="fa fa-file-excel text-white"></i> Export To Excel
+                        </button>
+                    }
+                </div>
+                @if (User.IsInRole("Admin"))
+                {
+                    <a asp-action="Create" class="btn btn-primary me-2 mb-2">+ Add Opportunity</a>
+                }
+            </div>
+
+        </div>
+    </div>
+
+
+
+    @if (ViewData["numberFilters"]?.ToString() != "0 Filters Applied")
+    {
+        <div class="filters-container mt-2">
+            @if (!string.IsNullOrEmpty(ViewData["SearchString"] as string))
+            {
+                <span class="custom-filter-badge me-2">
+                    Opportunity Name: @ViewData["SearchString"]
+                    <button type="button" class="ms-2 clear-btn" onclick="clearFilter('SearchString')">x</button>
+                </span>
+            }
+            @if (!string.IsNullOrEmpty(ViewData["OpportunityActionFilter"] as string))
+            {
+                <span class="custom-filter-badge me-2">
+                    Opportunity Action: @ViewData["OpportunityActionFilter"]
+                    <button type="button" class="ms-2 clear-btn" onclick="clearFilter('OpportunityAction')">x</button>
+                </span>
+            }
+
+            @if (!string.IsNullOrEmpty(ViewData["InteractionFilter"] as string))
+            {
+                <span class="custom-filter-badge me-2">
+                    Interaction: @ViewData["InteractionFilter"]
+                    <button type="button" class="ms-2 clear-btn" onclick="clearFilter('Interaction')">x</button>
+                </span>
+            }
+            @if (ViewData["StatusFilter"] != null)
+            {
+                <span class="custom-filter-badge me-2">
+                    Status: @ViewData["StatusFilter"]
+                    <button type="button" class="ms-2 clear-btn" onclick="clearFilter('status')">x</button>
+                </span>
+            }
+            @if (ViewData["PriorityFilter"] != null)
+            {
+                <span class="custom-filter-badge me-2">
+                    Priority: @ViewData["PriorityFilter"]
+                    <button type="button" class="ms-2 clear-btn" onclick="clearFilter('priority')">x</button>
+                </span>
+            }
+        </div>
+    }
+
+    <div class="collapse @ViewData["ShowFilter"] mt-2" id="collapseFilter">
+        <div class="card card-body bg-light">
+            <div class="row">
+                <div class="form-group col-md-3">
+                    <label>Search By Name:</label>
+                    @Html.TextBox("SearchString", null, new { @class = "form-control", placeholder = "Enter name" })
+                </div>
+                <div class="form-group col-md-3">
+                    <label>Search By Opportunity Action:</label>
+                    @Html.TextBox("OpportunityAction", null, new { @class = "form-control", placeholder = "Enter opportunity action" })
+                </div>
+                <div class="form-group col-md-3">
+                    <label>Search By Interaction:</label>
+                    @Html.TextBox("Interaction", null, new { @class = "form-control", placeholder = "Enter interaction" })
+                </div>
+
+                <div class="form-group col-md-3">
+                    <label>Filter by Status:</label>
+                    @Html.DropDownList("status", new SelectList(Enum.GetValues(typeof(OpportunityStatus))), "All Statuses", new { @class = "form-control" })
+                </div>
+                <div class="form-group col-md-3">
+                    <label>Filter by Priority:</label>
+                    @Html.DropDownList("priority", new SelectList(Enum.GetValues(typeof(OpportunityPriority))), "All Priorities", new { @class = "form-control" })
+                </div>
+                <div class="form-group col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">Apply Filters</button>
+                    <a asp-action="Index" class="btn btn-dark">Clear Filters</a>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="d-flex justify-content-between align-items-center">
+        <label class="control-label">@ViewData["records"]</label>
+        <i class="fa fa-question-circle help-icon ms-2" onclick="toggleVisibility('prreviewHelp')" title="Click for preview panel instructions"></i>
+    </div>
+    <div id="prreviewHelp" class="info-box" style="display: none; border: 1px solid #ccc; padding: 10px; margin: 10px; position: relative;">
+        <button class="close-btn" onclick="toggleVisibility('importHelp')">×</button>
+        <h5>Preview Panel Instructions</h5>
+        <p>
+            By clicking on a record row, a side panel will appear with a preview of the record's details.
+            In the Preview panel, you can quickly review the record's information and perform various actions:
+            <br />
+            - Navigate to the Edit opportunity page
+            <br />
+            - Delete the opportunity
+        </p>
+    </div>
+
+    <table class="table table-bordered table-striped" id="myTable" aria-label="Member Details Table">
+        <thead>
+            <tr>
+                <th scope="col" class="table-head">
+                    @{
+                        var isNameSortField = sortField == "Opportunity Name";
+                        var NameSortIndicator = isNameSortField ? (sortDirection == "asc" ? "↑" : "↓") : "";
+                    }
+                    @if (isNameSortField)
+                    {
+                        <input type="submit" name="actionButton" value="Opportunity Name" class="btn btn-link" aria-label="Sort by Opportunity Name" />
+                        <span class="SortIndicator">@NameSortIndicator</span>
+                    }
+                    else
+                    {
+                        <input type="submit" name="actionButton" value="Opportunity Name" class="btn btn-link" aria-label="Sort by Opportunity Name" />
+                    }
+                </th>
+                <th scope="col" class="table-head">
+                    @{
+                        var isActionSortField = sortField == "Action";
+                        var ActionSortIndicator = isActionSortField ? (sortDirection == "asc" ? "↑" : "↓") : "";
+                    }
+                    @if (isActionSortField)
+                    {
+                        <input type="submit" name="actionButton" value="Action" class="btn btn-link" aria-label="Sort by Action" />
+                        <span class="SortIndicator">@ActionSortIndicator</span>
+                    }
+                    else
+                    {
+                        <input type="submit" name="actionButton" value="Action" class="btn btn-link" aria-label="Sort by Action" />
+                    }
+                </th>
+                <th scope="col" class="table-head">
+                    @{
+                        var isPOCSortField = sortField == "POC";
+                        var POCSortIndicator = isPOCSortField ? (sortDirection == "asc" ? "↑" : "↓") : "";
+                    }
+                    @if (isPOCSortField)
+                    {
+                        <input type="submit" name="actionButton" value="POC" class="btn btn-link" aria-label="Sort by POC" />
+                        <span class="SortIndicator">@POCSortIndicator</span>
+                    }
+                    else
+                    {
+                        <input type="submit" name="actionButton" value="POC" class="btn btn-link" aria-label="Sort by POC" />
+                    }
+                </th>
+                <th scope="col" class="table-head">
+                    @{
+                        var isInteractionSortField = sortField == "Interaction";
+                        var InteractionSortIndicator = isInteractionSortField ? (sortDirection == "asc" ? "↑" : "↓") : "";
+                    }
+                    @if (isInteractionSortField)
+                    {
+                        <input type="submit" name="actionButton" value="Interaction" class="btn btn-link" aria-label="Sort by Interaction" />
+                        <span class="SortIndicator">@InteractionSortIndicator</span>
+                    }
+                    else
+                    {
+                        <input type="submit" name="actionButton" value="Interaction" class="btn btn-link" aria-label="Sort by Interaction" />
+                    }
+                </th>
+                <th scope="col" class="table-head">
+                    @{
+                        var isStatusSortField = sortField == "Status";
+                        var StatusSortIndicator = isStatusSortField ? (sortDirection == "asc" ? "↑" : "↓") : "";
+                    }
+                    @if (isStatusSortField)
+                    {
+                        <input type="submit" name="actionButton" value="Status" class="btn btn-link" aria-label="Sort by Status" />
+                        <span class="SortIndicator">@StatusSortIndicator</span>
+                    }
+                    else
+                    {
+                        <input type="submit" name="actionButton" value="Status" class="btn btn-link" aria-label="Sort by Status" />
+                    }
+                </th>
+                <th scope="col" class="table-head">
+                    @{
+                        var isPrioritySortField = sortField == "Priority";
+                        var PrioritySortIndicator = isPrioritySortField ? (sortDirection == "asc" ? "↑" : "↓") : "";
+                    }
+                    @if (isPrioritySortField)
+                    {
+                        <input type="submit" name="actionButton" value="Priority" class="btn btn-link" aria-label="Sort by Priority" />
+                        <span class="SortIndicator">@PrioritySortIndicator</span>
+                    }
+                    else
+                    {
+                        <input type="submit" name="actionButton" value="Priority" class="btn btn-link" aria-label="Sort by Priority" />
+                    }
+                </th>
+                @* <th scope ="col" class="table-head">Actions</th> *@
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr class="clickable-row" data-id="@item.ID" title="Click on row to get preview">
+                    <td>@item.OpportunityName</td>
+                    <td>@item.OpportunityAction</td>
+                    <td>@item.POC</td>
+                    <td>@item.Interaction</td>
+                    <td>@item.OpportunityStatus</td>
+                    <td>@item.OpportunityPriority</td>
+                    @* <td>
+                        <a asp-action="Edit" asp-route-id="@item.ID">Edit</a> |
+                        <a asp-action="Details" asp-route-id="@item.ID">Details</a> |
+                        <a asp-action="Delete" asp-route-id="@item.ID">Delete</a>
+                    </td> *@
+                </tr>
+            }
+        </tbody>
+    </table>
+    <partial name="_PagingNavBar" />
+
+</form>
+
+<div id="previewContainer" class="preview-content hidden"></div>
+
+@section Scripts {
+    <script>
+        function clearFilter(filterName) {
+            var url = window.location.href.split('?')[0];
+            var params = new URLSearchParams(window.location.search);
+            params.delete(filterName);
+            window.location.href = url + '?' + params.toString();
+        }
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            // Initially hide the preview content
+            $('#previewContainer').addClass('hidden');
+
+            // Handle click event on rows with the "clickable-row" class
+            $(document).on('click', '.clickable-row', function () {
+                var contactId = $(this).data('id'); // Get the Contact ID from the row's data attribute
+
+                if (!contactId) {
+                    console.error('No contact ID found for this row.');
+                    return;
+                }
+
+                // Make an AJAX request to get the partial view for the selected contact
+                $.ajax({
+                    url: '/Opportunity/GetOpportunityPreview', // Adjust the URL to match your routing
+                    type: 'GET',
+                    data: { id: contactId },
+                    success: function (result) {
+                        // Insert the result (partial view) into the preview container
+                        $('#previewContainer').html(result);
+                        $('#previewContainer').removeClass('hidden').addClass('visible'); // Show the preview
+
+                        // Assign the close event to the button inside the loaded preview
+                        $('#previewContainer').find('input[name="btnClose"]').on('click', function () {
+                            $('#previewContainer').removeClass('visible').addClass('hidden');
+                        });
+
+
+
+
+
+                    },
+                    error: function () {
+                        alert('An error occurred while loading the preview.');
+                    }
+                });
+            });
+
+            // Window click listener to collapse preview when clicked outside
+            $(window).click(function (event) {
+                if (!$(event.target).closest('#previewContainer, .clickable-row').length) {
+                    $('#previewContainer').removeClass('visible').addClass('hidden');
+                }
+            });
+
+            // Prevent the preview container from closing when clicked inside
+            $('#previewContainer').click(function (event) {
+                event.stopPropagation(); // Stop the event from propagating to the window
+            });
+        });
+
+        function clearFilter(filterName) {
+            // Get the current URL
+            var url = window.location.href.split('?')[0]; // Current URL without query string
+
+            // Get the query parameters from the URL
+            var params = new URLSearchParams(window.location.search);
+            params.delete(filterName);
+
+            // Reload the page with the updated query string (filters removed)
+            window.location.href = url + '?' + params.toString();
+        }
+    </script>
+}

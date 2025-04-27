@@ -1,0 +1,583 @@
+﻿@model NIA_CRM.Models.Member
+
+@{
+    ViewData["Title"] = "Details";
+}
+<partial name="_Notification" />
+<partial name="_addArchiveModal" />
+
+
+
+<div class="row align-items-center">
+    <!-- Logo (Member Thumbnail or Default Image) -->
+    <div class="col-auto">
+        @if (Model.MemberLogo?.Content != null)
+        {
+            string imageBase64 = Convert.ToBase64String(Model.MemberLogo.Content);
+            string imageSrc = $"data:{Model.MemberLogo.MimeType};base64,{imageBase64}";
+            <img src="@imageSrc" alt="Profile Picture of @Model.MemberName"
+            title="Profile Picture of @Model.MemberName"
+            class="img-fluid rounded" style="height: 70px; width: 70px; object-fit: cover;" />
+        }
+        else
+        {
+            <img src="~/images/Unknown_person.jpg"
+            alt="Profile Picture of @Model.MemberName"
+            title="Profile Picture of @Model.MemberName"
+            class="img-fluid rounded" style="height: 70px; width: 70px; object-fit: cover;" />
+        }
+    </div>
+
+    <!-- Member Name -->
+    <div class="col">
+        <h1 class="mb-0">@Model.MemberName</h1>
+    </div>
+</div>
+<partial name="_SuccessMessage" />
+<div>
+    <h4>Details</h4>
+    <hr />
+    @{
+        var contacts = Model.MemberContacts?.Select(mc => mc.Contact).ToList();
+        var primaryContact = contacts?.FirstOrDefault(c => c.IsVip) ?? contacts?.FirstOrDefault();
+        var additionalContacts = contacts?.Where(c => c != primaryContact).ToList();
+        var addres = Model?.Address;
+    }
+
+    <div class="container">
+        <div class="row">
+            <!-- Left Card: Detailed Information -->
+            <div class="col-md-6">
+                <h5 class="card-title">Detailed Information</h5>
+                <div class="card card-body bg-light text-black">
+                    <div class="row">
+                        <!-- Left Column: Address & Membership Type -->
+                        <div class="col-md-6">
+                            <dl>
+                                <dt>Address:</dt>
+                                <dd>
+                                    @if (Model.Address != null)
+                                    {
+                                        <p>
+                                            @Model.Address.AddressLine1<br />
+                                            @if (!string.IsNullOrEmpty(Model.Address.AddressLine2))
+                                            {
+                                                @Model.Address.AddressLine2
+                                                <br />
+                                            }
+                                            @Model.Address.City, @Model.Address.StateProvince, @Model.Address.PostalCode<br />
+                                        </p>
+
+                                    }
+                                    else
+                                    {
+                                        <p>No addresses available.</p>
+                                    }
+                                </dd>
+
+                                <dt>Membership Type:</dt>
+                                <dd>
+                                    @{
+                                        int membershipCount = Model.MemberMembershipTypes.Count;
+                                        if (membershipCount > 0)
+                                        {
+                                            string firstMembershipType = Model.MemberMembershipTypes.FirstOrDefault().MembershipType.TypeName;
+                                            if (membershipCount > 1)
+                                            {
+                                                string membershipList = ""; // HTML string of membership type names separated by <br /> tags
+                                                var memberships = Model.MemberMembershipTypes.ToList();
+                                                for (int i = 1; i < membershipCount; i++) // Skip the first because we have it already
+                                                {
+                                                    membershipList += memberships[i].MembershipType.TypeName + " <br />";
+                                                }
+                                                <a class="member-toggle" data-bs-toggle="collapse" href="#collapseMembership@(Model.ID)"
+                                                aria-expanded="false" aria-controls="collapseMembership@(Model.ID)">
+                                                    @firstMembershipType <span class="participant-badge">@membershipCount</span>
+                                                </a>
+                                                <div class="collapse" id="collapseMembership@(Model.ID)">
+                                                    @Html.Raw(membershipList)
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                @firstMembershipType
+                                            }
+
+                                        }
+                                        else
+                                        {
+                                            <p>No membership type available.</p>
+                                        }
+                                    }
+
+                                </dd>
+
+                                <dt>Tag:</dt>
+                                <dd>
+                                    @{
+                                        int tagCount = Model.MemberTags.Count;
+                                        if (tagCount > 0)
+                                        {
+                                            var firstTag = Model.MemberTags.FirstOrDefault().MTag.MTagName; // Get the first tag name
+                                            if (tagCount > 1)
+                                            {
+                                                string tagList = ""; // HTML string of tag names separated by <br /> tags
+                                                var tags = Model.MemberTags.ToList();
+                                                for (int i = 1; i < tagCount; i++) // Skip the first because we have it already
+                                                {
+                                                    tagList += $"{tags[i].MTag.MTagName}<br />";
+                                                }
+                                                <a class="member-toggle" data-bs-toggle="collapse" href="#collapseTag@(Model.ID)"
+                                                aria-expanded="false" aria-controls="collapseTag@(Model.ID)">
+                                                    @firstTag <span class="participant-badge">@tagCount</span>
+                                                </a>
+                                                <div class="collapse" id="collapseTag@(Model.ID)">
+                                                    @Html.Raw(tagList)
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                @firstTag
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <p>No tag available.</p>
+                                        }
+                                    }
+                                </dd>
+
+                                <dt>Sector:</dt>
+                                <dd>
+                                    @{
+                                        int sectorCount = Model.MemberSectors.Count;
+                                        if (sectorCount > 0)
+                                        {
+                                            var firstSector = Model.MemberSectors.FirstOrDefault().Sector.SectorName; // Get the first sector name
+                                            if (sectorCount > 1)
+                                            {
+                                                string sectorList = ""; // HTML string of sector names separated by <br /> tags
+                                                var sectors = Model.MemberSectors.ToList();
+                                                for (int i = 1; i < sectorCount; i++) // Skip the first because we have it already
+                                                {
+                                                    sectorList += $"{sectors[i].Sector.SectorName}<br />";
+                                                }
+                                                <a class="member-toggle" data-bs-toggle="collapse" href="#collapseSector@(Model.ID)"
+                                                aria-expanded="false" aria-controls="collapseSector@(Model.ID)">
+                                                    @firstSector <span class="participant-badge">@sectorCount</span>
+                                                </a>
+                                                <div class="collapse" id="collapseSector@(Model.ID)">
+                                                    @Html.Raw(sectorList)
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                @firstSector
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <p>No sector available.</p>
+                                        }
+                                    }
+                                </dd>
+
+                            </dl>
+                        </div>
+
+                        <!-- Right Column: Other Details -->
+                        <div class="col-md-6">
+
+                            <dt>NAICS Code:</dt>
+                            <dd>
+                                @{
+                                    int naicsCount = Model.IndustryNAICSCodes.Count;
+                                    if (naicsCount > 0)
+                                    {
+                                        var firstNAICS = Model.IndustryNAICSCodes.FirstOrDefault().NAICSCode.Code; // Get the first NAICS code
+                                        if (naicsCount > 1)
+                                        {
+                                            string naicsList = ""; // HTML string of NAICS codes and descriptions separated by <br /> tags
+                                            var naicsCodes = Model.IndustryNAICSCodes.ToList();
+                                            for (int i = 1; i < naicsCount; i++) // Skip the first because we have it already
+                                            {
+                                                naicsList += $"{naicsCodes[i].NAICSCode.Code} - {naicsCodes[i].NAICSCode.Description}<br />";
+                                            }
+                                            <a class="member-toggle" data-bs-toggle="collapse" href="#collapseNAICS@(Model.ID)"
+                                               aria-expanded="false" aria-controls="collapseNAICS@(Model.ID)">
+                                                @firstNAICS <span class="participant-badge">@naicsCount</span>
+                                            </a>
+                                            <div class="collapse" id="collapseNAICS@(Model.ID)">
+                                                @Html.Raw(naicsList)
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            var firstDescription = Model.IndustryNAICSCodes.FirstOrDefault().NAICSCode.Description;
+                                            @firstNAICS @("- ") @firstDescription
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <p>No NAICS Code available.</p>
+                                    }
+                                }
+                            </dd>
+
+
+
+                            <dl>
+                                <dt>@Html.DisplayNameFor(model => model.JoinDate)</dt>
+                                <dd>@Html.DisplayFor(model => model.JoinDate)</dd>
+
+                                <dt>Website:</dt>
+                                <dd>
+                                    <a href="@Model.WebsiteUrl" target="_blank">
+                                        @Html.DisplayFor(model => model.WebsiteUrl)
+                                    </a>
+                                </dd>
+
+                                <dt>Size:</dt>
+                                <dd>@Html.DisplayFor(model => model.MemberSize)</dd>
+                            </dl>
+                        </div>
+                    </div>
+                    <div class="card-button-container">
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <a class="btn btn-secondary me-2" asp-controller="Member" asp-action="Edit" asp-route-id="@Model.ID">Edit General Info</a>
+                            <a class="btn btn-secondary me-2" asp-controller="Address" asp-action="Edit" asp-route-id="@addres.Id" asp-route-memberid="@addres.MemberId" asp-route-membername="@addres.Member.MemberName">Edit Address</a>
+                        }
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Right Card: Primary Contact Information -->
+            <div class="col-md-6">
+                <h5>Primary Contact Information</h5>
+                @if (primaryContact != null)
+                {
+                    <div class="card card-body bg-light text-black">
+                        <div class="row">
+                            <!-- Left Column -->
+                            <div class="col-md-6">
+                                <dl>
+                                    <dt>Contact Name:</dt>
+                                    <dd>
+                                        @primaryContact.Summary
+                                        @if (primaryContact.IsVip)
+                                        {
+                                            <span class="badge bg-warning text-dark ms-2">VIP</span>
+                                        }
+                                    </dd>
+
+                                    <dt>Title:</dt>
+                                    <dd>@primaryContact.Title</dd>
+
+                                    <dt>Department:</dt>
+                                    <dd>@primaryContact.Department</dd>
+                                </dl>
+                            </div>
+
+                            <!-- Right Column -->
+                            <div class="col-md-6">
+                                <dl>
+                                    <dt>Email:</dt>
+                                    <dd><a href="mailto:@primaryContact.Email">@primaryContact.Email</a></dd>
+
+                                    <dt>Phone:</dt>
+                                    <dd><a href="tel:@primaryContact.PhoneFormatted" id="phoneNumber">@primaryContact.PhoneFormatted</a></dd>
+
+                                    @if (!string.IsNullOrEmpty(primaryContact.LinkedInUrl))
+                                    {
+                                        <dt>LinkedIn:</dt>
+                                        <dd><a href="@primaryContact.LinkedInUrl" target="_blank">@primaryContact.LinkedInUrl</a></dd>
+                                    }
+
+
+
+                                </dl>
+                            </div>
+                        </div>
+                        <div class="card-button-container">
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <button type="button" class="btn btn-light me-2"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#addCancellationModal"
+                                        data-id="@primaryContact.Id">
+                                    Archive Contact
+                                </button>
+                                <a class="btn btn-secondary" asp-controller="Contact" asp-action="Edit" asp-route-id="@primaryContact.Id">Edit</a>
+                            }
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <p>No primary contact available.</p>
+                }
+            </div>
+
+            <!-- Additional Contacts (If any) -->
+            @if (additionalContacts != null && additionalContacts.Any())
+            {
+                <div class="row mt-3">
+                    <div class="col-md-12">
+                        <h5>Additional Contacts</h5>
+                        @foreach (var contact in additionalContacts)
+                        {
+                            <div class="mb-3">
+                                <div class="card card-body bg-white text-black">
+                                    <dl class="row">
+                                        <div class="col-sm-4">
+                                            <dt>Contact Name:</dt>
+                                            <dd>@contact.Summary</dd>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <dt>Title:</dt>
+                                            <dd>@contact.Title</dd>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <dt>Department:</dt>
+                                            <dd>@contact.Department</dd>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <dt>Email:</dt>
+                                            <dd><a href="mailto:@contact.Email">@contact.Email</a></dd>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <dt>Phone:</dt>
+                                            <dd><a href="tel:@contact.PhoneFormatted" id="phoneNumber">@contact.PhoneFormatted</a></dd>
+                                        </div>
+                                        @if (!string.IsNullOrEmpty(contact.LinkedInUrl))
+                                        {
+                                            <div class="col-sm-4">
+                                                <dt>LinkedIn:</dt>
+                                                <dd><a href="@contact.LinkedInUrl" target="_blank">@contact.LinkedInUrl</a></dd>
+                                            </div>
+                                        }
+                                    </dl>
+                                    <div class="position-bottom-left">
+                                        @if (User.IsInRole("Admin"))
+                                        {
+                                            <button type="button" class="btn btn-light me-2"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#addCancellationModal"
+                                                    data-id="@contact.Id">
+                                                Archive Contact
+                                            </button>
+                                            <a class="btn btn-secondary" asp-controller="Contact" asp-action="Edit" asp-route-id="@contact.Id">Edit</a>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- Additional Information Card (How Long Since Joined, Days Left, Notes) -->
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <h5>Additional Information</h5>
+                    <div class="card card-body bg-light text-black">
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <dt>How Long Since Joined:</dt>
+                                <dd>@Html.DisplayFor(model => model.TimeSinceJoined)</dd>
+                            </div>
+                            <div class="col-md-4">
+                                <dt>Days Left in Subscription:</dt>
+                                <dd>3 months 4 days</dd>
+                            </div>
+                            <div class="col-md-4">
+                                <dt>Notes:</dt>
+                                <dd>@Html.DisplayFor(model => model.MemberNote)</dd>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="position-bottom-left">
+            @if (User.IsInRole("Admin"))
+            {
+                <a class="btn btn-dark me-2" data-bs-toggle="modal" data-bs-target="#addCancellationModal" data-id="@Model.ID">Archive</a>
+                <a class="btn btn-primary me-2" asp-controller="Contact" asp-action="Create" asp-route-memberId="@Model.ID" asp-route-memberName="@Model.MemberName">Create New Contact</a>
+                <a class="btn btn-primary me-2" asp-controller="Member" asp-action="Edit" asp-route-id="@Model.ID">Edit</a>
+            }
+            <a class="btn btn-primary me-2" asp-controller="Member" asp-action="Index">Back to Members</a>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script type="text/javascript">
+        document.addEventListener("DOMContentLoaded", function () {
+            var modal = document.getElementById('addCancellationModal'); // Fixed modal ID
+
+            // When the modal is about to be shown
+            modal.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget;  // Button that triggered the modal
+                var memberId = button.getAttribute('data-id');  // Get Member ID from button
+
+                console.log("Member ID received:", memberId); // Debugging log
+
+                // Set the Member ID in the hidden input field inside the modal
+                //document.getElementById('MemberID').value = memberId;
+
+                // Make AJAX GET request to fetch member data and fill the form dynamically
+                $.ajax({
+                    type: "GET",
+                    url: '/Cancellation/Create',  // Ensure this points to the correct action URL
+                    data: { memberId: memberId },
+                    success: function (response) {
+                        console.log(response.memberName);
+                        if (response.success) {
+                            // Populate the form with the received data
+                            $('#createCancellationForm').find('input[name="MemberID"]').val(response.memberId);
+                           // $('#MemberID').val(response.memberId);  // Set MemberID in the form field
+                            $('#MemberName').text(response.memberName);  // Optionally display MemberName in the modal header or form
+                        } else {
+                            console.error("Failed to fetch member data:", response.message);
+                        }
+                    },
+                    error: function (xhr) {
+                        console.error("Error fetching member data:", xhr);
+                    }
+                });
+            });
+
+            // Handle form submission with AJAX
+                    $('#submitCancellationCreate').click(function (event) {
+            event.preventDefault();  // Prevent default form submission
+            clearErrors();  // Clear previous error messages
+
+            var form = $('#createCancellationForm'); // Fixed form ID
+            var memberId = $('#MemberID').val(); // Get Member ID from hidden input field
+            memberId = parseInt(memberId);
+            console.log("Submitting form for Member ID:", memberId); // Debugging log
+
+            // Validate the form
+            if (form.valid()) {
+                $.ajax({
+                    type: "POST",
+                    url: form.attr('action'),  // The form's action URL
+                    data: form.serialize() + "&MemberID=" + memberId, // Ensure MemberID is included
+                    success: function (response) {
+                        if (response.success) {
+                            $('#addCancellationModal').modal('hide');
+                            //alert(response.message); // Optionally show success message
+                            location.reload(); // Refresh page to reflect changes
+                        } else {
+                            console.error("Error: " + response.message);
+                            showErrorMessage(response.message); // Show error messages
+                        }
+                    },
+                    error: function (xhr) {
+                        console.error("Error: ", xhr);
+                        showErrorMessage("An unexpected error occurred."); // General error message
+                    }
+                });
+            }
+
+            return false; // Prevent default form submission
+        });
+
+        // Function to show error messages in the modal
+        function showErrorMessage(message) {
+            var ul = document.getElementById("ErrorList");
+            ul.innerHTML = "";  // Clear previous errors
+
+            // Split and display each error message
+            var errors = message.split("|");
+            errors.forEach(function (error) {
+                var li = document.createElement("li");
+                li.innerHTML = error;
+                ul.appendChild(li);
+            });
+        }
+
+            // Function to handle error messages from AJAX response
+            function handleAjaxErrors(xhr) {
+                var errorMessages = [];
+                switch (xhr.status) {
+                    case 401:
+                        errorMessages.push("You must be logged in first.");
+                        break;
+                    case 403:
+                        errorMessages.push("You are not authorized for this action.");
+                        break;
+                    default:
+                        errorMessages = xhr.responseText.split("|").slice(0, -1);
+                }
+
+                if (!errorMessages.some((str) => str !== "")) {
+                    errorMessages.push("Error: Unable to complete operation");
+                }
+
+
+            }
+
+            // Function to clear previous error messages
+            function clearErrors() {
+                var ul = document.getElementById("ErrorList");
+                ul.innerHTML = "";  // Clear previous error messages
+            }
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Function to equalize card heights
+            function equalizeCardHeights() {
+                const detailedInfoCard = document.querySelector('.col-md-6:first-child .card');
+                const contactInfoCard = document.querySelector('.col-md-6:nth-child(2) .card');
+
+                if (detailedInfoCard && contactInfoCard) {
+                    // Reset heights to auto first to get true heights
+                    detailedInfoCard.style.height = 'auto';
+                    contactInfoCard.style.height = 'auto';
+
+                    // Get the height of the taller card
+                    const detailedHeight = detailedInfoCard.offsetHeight;
+                    const contactHeight = contactInfoCard.offsetHeight;
+                    const maxHeight = Math.max(detailedHeight, contactHeight);
+
+                    // Set both cards to the same height
+                    detailedInfoCard.style.height = maxHeight + 'px';
+                    contactInfoCard.style.height = maxHeight + 'px';
+                }
+            }
+
+            // Call the function initially
+            equalizeCardHeights();
+
+            // Call the function when window is resized
+            window.addEventListener('resize', equalizeCardHeights);
+
+            // Also call the function when any collapsible elements are toggled
+            const collapseElements = document.querySelectorAll('[data-bs-toggle="collapse"]');
+            collapseElements.forEach(function (element) {
+                element.addEventListener('click', function () {
+                    // Use setTimeout to allow the collapse animation to complete
+                    setTimeout(equalizeCardHeights, 350);
+                });
+            });
+        });
+    </script>
+    <style>
+        .card {
+            position: relative;
+        }
+
+        .card-button-container {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+        }
+    </style>
+    }

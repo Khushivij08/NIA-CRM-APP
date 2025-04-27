@@ -1,0 +1,978 @@
+﻿@model IEnumerable<NIA_CRM.Models.Member>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+
+<partial name="_addArchiveModal" />
+<partial name="_Notification" />
+
+
+<div class="d-flex flex-row align-items-center justify-content-between mb-4">
+    <h1 class="mb-0" id="member-title">Members</h1>
+</div>
+
+<partial name="_ErrorMessage" />
+<partial name="_SuccessMessage" />
+
+
+<!-- Import Excel Form -->
+@if (User.IsInRole("Admin"))
+{
+    <form asp-action="ImportMembersFromExcel" method="post" enctype="multipart/form-data">
+        <!-- Help Icon for import Instructions -->
+        <i class="fa fa-question-circle help-icon ms-2" onclick="toggleVisibility('importHelp')" title="Click for import instructions"></i>
+        <div class="d-flex align-items-center" style="padding-bottom: 10px;">
+            <button type="submit" class="btn btn-dark me-2" style="min-width: 150px;">
+                <i class="fa fa-file-import"></i> Import Excel
+            </button>
+            <input type="file" name="file" class="form-control" required />
+        </div>
+    </form>
+
+    @* onclick = "toggleVisibility('importHelp')" *@
+
+    <!-- Import Help Info -->
+    <div id="importHelp" class="info-box" style="display: none; border: 1px solid #ccc; padding: 10px; margin: 10px; position: relative;">
+        <button class="close-btn" onclick="toggleVisibility('importHelp')">×</button>
+        <h5>Import Instructions</h5>
+        <p>
+            To import member details, upload an Excel file (.xlsx) with properly formatted data.
+            The first row of your file should contain the correct column headers to ensure a successful import.
+        </p>
+        <p>
+            Required fields include a valid <strong>Member ID</strong>, <strong>Member Name</strong>, and <strong>Join Date</strong> (YYYY-MM-DD format).
+
+            Other fields like <strong>City</strong>, <strong>Address Line 1</strong>, <strong>Membership Type</strong>, and <strong>Postal Code</strong> should also be properly formatted.
+            Contact information (Phone and Email) must be separated by a "|" symbol in a single column. For example: <strong>123-456-7890|member@example.com</strong>.
+
+            
+        </p>
+      
+        <p>
+            Ensure the following column structure:
+            <ul>
+                <li><strong>Column 1:</strong> Member ID (Numeric, Unique)</li>
+                <li><strong>Column 2:</strong> Member Name (Text, Full Name, Unique)</li>
+                <li><strong>Column 3:</strong> City (Text, City where the member resides)</li>
+                <li><strong>Column 4:</strong> Join Date (Date, YYYY-MM-DD format)</li>
+                <li><strong>Column 5:</strong> Membership Type (Text, Regular or Premium)</li>
+                <li><strong>Column 6:</strong> Address Line 1 (Text, Street address)</li>
+                <li><strong>Column 7:</strong> Contact Information (Phone|Email, Separate phone and email with a pipe symbol "|")</li>
+                <li><strong>Column 8:</strong> Postal Code (Text, Postal code in the correct format)</li>
+            </ul>
+        </p>
+        <a href="/files/MemberImportSample.xlsx" download style="font-weight:bold;">
+            Download Sample Excel File for Import
+        </a>
+        <p>
+            Ensure all required data is included and headers match exactly, otherwise, the import may fail.
+            Any missing data will be filled with default values like "Unknown" or "N/A" where appropriate.
+        </p>
+    </div>
+
+}
+
+<!-- Export Fields Modal -->
+<div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exportModalLabel">Select Fields to Export</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="exportForm" asp-action="ExportSelectedFields" method="post">
+                    @* Hidden fields to pass the filters to the Export Controller *@
+                    <input type="hidden" name="SearchString" id="modalSearchString" value="@ViewData["SearchString"]">
+                    <input type="hidden" name="JoinDate" id="modalJoinDate" value="@ViewData["JoinDate"]">
+                    <input type="hidden" name="MembershipType" id="modalMembershipType" value="@ViewData["MembershipTypesFilter"]">
+                    <input type="hidden" name="Sectors" id="modalSectors" value="@ViewData["SectorsFilter"]">
+                    <input type="hidden" name="NAICSCodes" id="modalNAICSCodes" value="@ViewData["NAICSCodesFilter"]">
+                    <input type="hidden" name="Cities" id="modalCities" value="@ViewData["CitiesFilter"]">
+
+                    <div class="form-check mb-1">
+                        <input type="checkbox" class="form-check-input" id="includeFilters" name="applyFilters" value="true" checked>
+                        <label class="form-check-label" for="includeFilters">Include current filters in export</label>
+                    </div>
+
+                    <div class="row">
+                        <!-- Member Section Header -->
+                        <div class="col-md-12 mt-2">
+                            <h5>Member Information</h5>
+                        </div>
+
+                        <!-- Member Fields -->
+                        <div class="col-md-6">
+                            <input type="checkbox" id="chkMemberName" name="selectedFields" value="MemberName" checked>
+                            <label for="chkMemberName">Member Name</label>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" id="chkMemberSize" name="selectedFields" value="MemberSize" checked>
+                            <label for="chkMemberSize">Member Size</label>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" id="chkWebsiteUrl" name="selectedFields" value="WebsiteUrl" checked>
+                            <label for="chkWebsiteUrl">Website Url</label>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" id="chkJoinDate" name="selectedFields" value="JoinDate" checked>
+                            <label for="chkJoinDate">Join Date</label>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" id="chkMembershipType" name="selectedFields" value="MembershipType" checked>
+                            <label for="chkMembershipType">Membership Type</label>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" id="chkMemberNote" name="selectedFields" value="MemberNote" checked>
+                            <label for="chkMemberNote">Member Note</label>
+                        </div>
+
+                        <!-- New Filters for Sectors and NAICSCodes -->
+                        <div class="col-md-6">
+                            <input type="checkbox" id="chkSectors" name="selectedFields" value="Sectors" checked>
+                            <label for="chkSectors">Sectors</label>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" id="chkNAICSCodes" name="selectedFields" value="NAICSCodes" checked>
+                            <label for="chkNAICSCodes">NAICS Codes</label>
+                        </div>
+
+                        <!-- Contact Section Header -->
+                        <div class="col-md-12 mt-2">
+                            <h5>Contact Information</h5>
+                        </div>
+
+                        <!-- Contact Fields -->
+                        <div class="col-md-6">
+                            <input type="checkbox" id="chkContactFullName" name="selectedFields" value="ContactFullName" checked>
+                            <label for="chkContactFullName">Contact Full Name</label>
+                        </div>
+
+                        <div class="col-md-6">
+                            <input type="checkbox" id="chkContactTitle" name="selectedFields" value="ContactTitle" checked>
+                            <label for="chkContactTitle">Contact Title</label>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" id="chkContactDepartment" name="selectedFields" value="ContactDepartment" checked>
+                            <label for="chkContactDepartment">Contact Department</label>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" id="chkContactEmail" name="selectedFields" value="ContactEmail" checked>
+                            <label for="chkContactEmail">Contact Email</label>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" id="chkContactPhone" name="selectedFields" value="ContactPhone" checked>
+                            <label for="chkContactPhone">Contact Phone</label>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" id="chkContactLinkedIn" name="selectedFields" value="ContactLinkedIn" checked>
+                            <label for="chkContactLinkedIn">Contact LinkedIn</label>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" id="chkContactNote" name="selectedFields" value="ContactNote" checked>
+                            <label for="chkContactNote">Contact Note</label>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" id="chkIsVip" name="selectedFields" value="IsVip" checked>
+                            <label for="chkIsVip">Is VIP</label>
+                        </div>
+
+                        <!-- Address Section Header -->
+                        <div class="col-md-12 mt-2">
+                            <h5>Address Information</h5>
+                        </div>
+
+                        <!-- Address Fields -->
+                        <div class="col-md-6">
+                            <input type="checkbox" id="chkAddressLine1" name="selectedFields" value="AddressLine1" checked>
+                            <label for="chkAddressLine1">Address Line 1</label>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" id="chkAddressLine2" name="selectedFields" value="AddressLine2" checked>
+                            <label for="chkAddressLine2">Address Line 2</label>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" id="chkAddressCity" name="selectedFields" value="City" checked>
+                            <label for="chkAddressCity">Address City</label>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" id="chkStateProvince" name="selectedFields" value="StateProvince" checked>
+                            <label for="chkStateProvince">Address Province</label>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" id="chkPostalCode" name="selectedFields" value="PostalCode" checked>
+                            <label for="chkPostalCode">Postal Code</label>
+                        </div>
+
+                        <div class="col-md-6">
+                            <input type="checkbox" id="chkFormattedAddress" name="selectedFields" value="FormattedAddress" checked>
+                            <label for="chkFormattedAddress">Formatted Address</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="exportForm" class="btn btn-dark" data-bs-dismiss="modal">
+                    <i class="fa fa-file-excel text-white"></i> Export
+                </button>
+                <!-- Help Icon for Export Instructions -->
+                <i class="fa fa-question-circle help-icon ms-2" onclick="toggleVisibility('exportHelp')" title="Click for export instructions"></i>
+            </div>
+
+            <!-- Export Help Info -->
+            <div id="exportHelp" class="info-box" style="display: none; border: 1px solid #ccc; padding: 10px; margin: 10px; position: relative;">
+                <button class="close-btn" onclick="toggleVisibility('exportHelp')">×</button>
+                <h5>Export Instructions</h5>
+                <p>
+                    Select the fields you wish to export by checking the corresponding boxes.
+                    If you have applied filters, you can choose to export the filtered data. Then click the "Export" button to download the file.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<form asp-action="Index" method="get" aria-labelledby="form-title">
+    <h2 id="form-title" class="sr-only">Filter and Search Form</h2>
+    <input type="hidden" name="sortDirection" value="@ViewData["SortDirection"]" />
+    <input type="hidden" name="sortField" value="@ViewData["SortField"]" />
+
+    @{
+        var sortField = ViewData["sortField"]?.ToString();
+        var sortDirection = ViewData["sortDirection"]?.ToString();
+    }
+    <!-- Filter/Search Toggle Button -->
+    <div class="form-horizontal mb-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <button class="btn btn-dark @ViewData["Filtering"]" type="button" id="filterToggle" data-bs-toggle="collapse" data-bs-target="#collapseFilter" aria-expanded="false" aria-controls="collapseFilter">
+                    Filter/Search @ViewData["numberFilters"]
+                </button>
+
+                @*  <button type="submit" name="actionButton" value="ExportExcel" class="btn btn-dark">
+                    <i class="fa fa-file-excel text-white"></i>
+                    Export filtered data to Excel
+                </button> *@
+
+                <!-- Export Button to Open Modal -->
+                @if (User.IsInRole("Admin"))
+                {
+                    <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#exportModal">
+                        <i class="fa fa-file-excel text-white"></i> Export To Excel
+                    </button>
+                }
+
+
+            </div>
+            @if (User.IsInRole("Admin"))
+            {
+                <a class="btn btn-primary" asp-action="Create">+ Add Member</a>
+            }
+        </div>
+
+        <!-- Filters clear banners -->
+        @if (ViewData["numberFilters"] != null && ViewData["numberFilters"].ToString() != "0 Filters Applied")
+        {
+            <div class="filters-container mt-2">
+                @if (!string.IsNullOrEmpty(ViewData["SearchString"] as string))
+                {
+                    <span class="custom-filter-badge me-2">
+                        Member Name: @ViewData["SearchString"]
+                        <button type="button" class="ms-2 clear-btn" aria-label="Clear" onclick="clearFilter('SearchString')">x</button>
+                    </span>
+                }
+                @if (ViewData["JoinDate"] != null)
+                {
+                    <span class="custom-filter-badge me-2">
+                        Join Date: @ViewData["JoinDate"]
+                        <button type="button" class="ms-2 clear-btn" aria-label="Clear" onclick="clearFilter('JoinDate')">x</button>
+                    </span>
+                }
+                @if (ViewData["MembershipTypesFilter"] != null)
+                {
+                    <span class="custom-filter-badge me-2">
+                        Membership Type: @ViewData["MembershipTypesFilter"]
+                        <button type="button" class="ms-2 clear-btn" aria-label="Clear" onclick="clearFilter('MembershipTypes')">x</button>
+                    </span>
+                }
+                @if (ViewData["SectorsFilter"] != null)
+                {
+                    <span class="custom-filter-badge me-2">
+                        Sector: @ViewData["SectorsFilter"]
+                        <button type="button" class="ms-2 clear-btn" aria-label="Clear" onclick="clearFilter('Sectors')">x</button>
+                    </span>
+                }
+                @if (ViewData["NAICSCodesFilter"] != null)
+                {
+                    <span class="custom-filter-badge me-2">
+                        NAICS Code: @ViewData["NAICSCodesFilter"]
+                        <button type="button" class="ms-2 clear-btn" aria-label="Clear" onclick="clearFilter('NAICSCodes')">x</button>
+                    </span>
+                }
+                @if (ViewData["CitiesFilter"] != null)
+                {
+                    <span class="custom-filter-badge me-2">
+                        City: @ViewData["CitiesFilter"]
+                        <button type="button" class="ms-2 clear-btn" aria-label="Clear" onclick="clearFilter('Cities')">x</button>
+                    </span>
+                }
+            </div>
+        }
+
+
+
+        <!-- Filter/Search Form -->
+        <div class="collapse @ViewData["ShowFilter"] mt-2" id="collapseFilter">
+            <div class="card card-body bg-light" role="region" aria-labelledby="filter-section-title">
+                <h2 id="filter-section-title" class="sr-only">Filter and Search Options</h2>
+                <div class="row">
+                    <!-- Filter by Member Name -->
+                    <div class="form-group col-md-4">
+                        <label for="SearchString" class="control-label">Search by Member Name:</label>
+                        @Html.TextBox("SearchString", ViewData["SearchString"] as string, new
+                            {
+                                @class = "form-control",
+                                id = "SearchString",
+                                placeholder = "Enter Member Name"
+                            })
+                        <span id="search-name-help" class="sr-only">Type the member name to search.</span>
+                    </div>
+
+                    <!-- Filter by Join Date -->
+                    <div class="form-group col-md-4">
+                        <label for="JoinDate" class="control-label">Filter by Join Date:</label>
+                        @Html.TextBox("JoinDate", ViewData["JoinDate"] as string, new
+                            {
+                                @class = "form-control",
+                                id = "JoinDate",
+                                placeholder = "YYYY-MM-DD",
+                                type = "date"
+                            })
+                        <span id="join-date-help" class="sr-only">Enter the date in YYYY-MM-DD format.</span>
+                    </div>
+
+                    <!-- Filter by Membership Types -->
+                    <div class="form-group col-md-4">
+                        <label for="MembershipTypes" class="control-label">Filter by Membership Types:</label>
+                        @Html.DropDownList("MembershipTypes", ViewData["MembershipTypes"] as SelectList, "All Membership Types",
+                                 new { @class = "form-control" })
+                        <span id="membership-types-help" class="sr-only">Select Membership Types to filter members by.</span>
+                    </div>
+
+                    <!-- Filter by Sectors -->
+                    <div class="form-group col-md-4">
+                        <label for="Sectors" class="control-label">Filter by Sectors:</label>
+                        @Html.DropDownList("Sectors", ViewData["Sectors"] as SelectList, "All Sectors",
+                                 new { @class = "form-control" })
+                        <span id="sectors-help" class="sr-only">Select a sector to filter members by.</span>
+                    </div>
+
+                    <!-- Filter by NAICS Codes -->
+                    <div class="form-group col-md-4">
+                        <label for="NAICSCodes" class="control-label">Filter by NAICS Code:</label>
+                        @Html.DropDownList("NAICSCodes", ViewData["NAICSCodes"] as SelectList, "All NAICS Codes",
+                                 new { @class = "form-control" })
+                        <span id="naics-codes-help" class="sr-only">Select a NAICS Code to filter members by.</span>
+                    </div>
+
+                    <!-- Filter by City -->
+                    <div class="form-group col-md-4">
+                        <label for="Cities" class="control-label">Filter by City:</label>
+                        @Html.DropDownList("Cities", ViewData["Cities"] as SelectList, "All Cities",
+                                 new { @class = "form-control" })
+                        <span id="cities-help" class="sr-only">Select a city to filter members by.</span>
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="form-group col-md-4 d-flex align-items-end mt-2">
+                    <input type="submit" name="actionButton" value="Apply Filters" class="btn btn-primary me-2" />
+                    <a asp-action="Index" class="btn btn-dark">Clear Filters</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center">
+        <label class="control-label">@ViewData["records"]</label>
+        <i class="fa fa-question-circle help-icon ms-2" onclick="toggleVisibility('prreviewHelp')" title="Click for preview panel instructions"></i>
+    </div>
+    <div id="prreviewHelp" class="info-box" style="display: none; border: 1px solid #ccc; padding: 10px; margin: 10px; position: relative;">
+        <button class="close-btn" onclick="toggleVisibility('importHelp')">×</button>
+        <h5>Preview Panel Instructions</h5>
+        <p>
+            By clicking on a record row, a side panel will appear with a preview of the record's details.
+            In the Preview panel, you can quickly review the record's information and perform various actions:
+            <br />
+            - Navigate to the Edit Member page
+            <br />
+            - Archive the Member <br />
+            - View the full details page for this member <br />
+
+            Additionally, you can edit or add notes about the member directly in the Preview panel and save them instantly.
+        </p>
+    </div>
+    <table class="table table-bordered table-striped" id="myTable" aria-label="Member Details Table">
+        <thead>
+            <tr>
+                <th scope="col" class="table-head">
+                    @{
+                        var isMemberNameSortField = sortField == "Member Name";
+                        var memberNameSortIndicator = isMemberNameSortField ? (sortDirection == "asc" ? "↑" : "↓") : "";
+                    }
+                    @if (isMemberNameSortField)
+                    {
+                        <input type="submit" name="actionButton" value="Member Name" class="btn btn-link" aria-label="Sort by Member Name" />
+                        <span class="SortIndicator">@memberNameSortIndicator</span>
+                    }
+                    else
+                    {
+                        <input type="submit" name="actionButton" value="Member Name" class="btn btn-link" aria-label="Sort by Member Name" />
+                    }
+                </th>
+
+                <th scope="col" class="table-head">
+                    @{
+                        var isCitySortField = sortField == "City";
+                        var citySortIndicator = isCitySortField ? (sortDirection == "asc" ? "↑" : "↓") : "";
+                    }
+                    @if (isCitySortField)
+                    {
+                        <input type="submit" name="actionButton" value="City" class="btn btn-link" aria-label="Sort by City" />
+                        <span class="SortIndicator">@citySortIndicator</span>
+                    }
+                    else
+                    {
+                        <input type="submit" name="actionButton" value="City" class="btn btn-link" aria-label="Sort by City" />
+                    }
+                </th>
+
+                <th scope="col" class="table-head">
+                    @{
+                        var isMembershipTypeSortField = sortField == "Membership Type";
+                        var membershipTypeSortIndicator = isMembershipTypeSortField ? (sortDirection == "asc" ? "↑" : "↓") : "";
+                    }
+                    @if (isMembershipTypeSortField)
+                    {
+                        <input type="submit" name="actionButton" value="Membership Type" class="btn btn-link" aria-label="Sort by Membership Type" />
+                        <span class="SortIndicator">@membershipTypeSortIndicator</span>
+                    }
+                    else
+                    {
+                        <input type="submit" name="actionButton" value="Membership Type" class="btn btn-link" aria-label="Sort by Membership Type" />
+                    }
+                </th>
+
+                @* <th scope="col" class="table-head">
+                    @{
+                        var isSectorSortField = sortField == "Sector";
+                        var sectorSortIndicator = isSectorSortField ? (sortDirection == "asc" ? "↑" : "↓") : "";
+                    }
+                    @if (isSectorSortField)
+                    {
+                        <input type="submit" name="actionButton" value="Sector" class="btn btn-link" aria-label="Sort by Sector" />
+                        <span class="SortIndicator">@sectorSortIndicator</span>
+                    }
+                    else
+                    {
+                        <input type="submit" name="actionButton" value="Sector" class="btn btn-link" aria-label="Sort by Sector" />
+                    }
+                </th> *@
+
+                <th scope="col" class="table-head">
+                    @{
+                        var isNAICSCodeSortField = sortField == "NAICS Code";
+                        var naicsCodeSortIndicator = isNAICSCodeSortField ? (sortDirection == "asc" ? "↑" : "↓") : "";
+                    }
+                    @if (isNAICSCodeSortField)
+                    {
+                        <input type="submit" name="actionButton" value="NAICS Code" class="btn btn-link" aria-label="Sort by NAICS Code" />
+                        <span class="SortIndicator">@naicsCodeSortIndicator</span>
+                    }
+                    else
+                    {
+                        <input type="submit" name="actionButton" value="NAICS Code" class="btn btn-link" aria-label="Sort by NAICS Code" />
+                    }
+                </th>
+
+                <th scope="col" class="table-head">
+                    @{
+                        var isContactNameSortField = sortField == "Contact Name";
+                        var contactNameSortIndicator = isContactNameSortField ? (sortDirection == "asc" ? "↑" : "↓") : "";
+                    }
+                    @if (isContactNameSortField)
+                    {
+                        <input type="submit" name="actionButton" value="Contact Name" class="btn btn-link" aria-label="Sort by Contact Name" />
+                        <span class="SortIndicator">@contactNameSortIndicator</span>
+                    }
+                    else
+                    {
+                        <input type="submit" name="actionButton" value="Contact Name" class="btn btn-link" aria-label="Sort by Contact Name" />
+                    }
+                </th>
+
+                <th scope="col" class="table-head">
+                    @{
+                        var isEmailSortField = sortField == "Email";
+                        var emailSortIndicator = isEmailSortField ? (sortDirection == "asc" ? "↑" : "↓") : "";
+                    }
+                    @if (isEmailSortField)
+                    {
+                        <input type="submit" name="actionButton" value="Email" class="btn btn-link" aria-label="Sort by Email" />
+                        <span class="SortIndicator">@emailSortIndicator</span>
+                    }
+                    else
+                    {
+                        <input type="submit" name="actionButton" value="Email" class="btn btn-link" aria-label="Sort by Email" />
+                    }
+                </th>
+
+            </tr>
+        </thead>
+
+
+        <tbody>
+
+            @foreach (var item in Model)
+            {
+                <tr class="clickable-row" data-id="@item.ID" title="Click on row to get preview">
+                    <td>
+                        @Html.DisplayFor(modelItem => item.MemberName)
+                    </td>
+                    <td>
+                        @if (item.Address != null)
+                        {
+                            @item.Address.City
+                        }
+                    </td>
+
+
+
+                    <td>
+                        @{
+                            int membershipCount = item.MemberMembershipTypes.Count;
+                            if (membershipCount > 0)
+                            {
+                                string firstMembershipType = item.MemberMembershipTypes.FirstOrDefault().MembershipType.TypeName;
+                                if (membershipCount > 1)
+                                {
+                                    string membershipList = ""; // HTML string of membership type names separated by <br /> tags
+                                    var memberships = item.MemberMembershipTypes.ToList();
+                                    for (int i = 1; i < membershipCount; i++) // Skip the first because we have it already
+                                    {
+                                        membershipList += memberships[i].MembershipType.TypeName + " <br />";
+                                    }
+                                    <a class="member-toggle"  data-bs-toggle="collapse" href="#collapseMembership@(item.ID)" id="ExpandableList"
+                                       aria-expanded="false" aria-controls="collapseMembership@(item.ID)">
+                                        @firstMembershipType <span class="participant-badge">@membershipCount</span>
+                                    </a>
+                                    <div class="collapse" id="collapseMembership@(item.ID)">
+                                        @Html.Raw(membershipList)
+                                    </div>
+                                }
+                                else
+                                {
+                                    @firstMembershipType
+                                }
+                            }
+                        }
+
+                    </td>
+
+                    @* <td>
+                        @{
+                            int sectorCount = item.MemberSectors.Count;
+                            if (sectorCount > 0)
+                            {
+                                string firstSector = item.MemberSectors.FirstOrDefault().Sector.SectorName;
+                                if (sectorCount > 1)
+                                {
+                                    string sectorList = ""; // HTML string of sector names separated by <br /> tags
+                                    var sectors = item.MemberSectors.ToList();
+                                    for (int i = 1; i < sectorCount; i++) // Skip the first because we have it already
+                                    {
+                                        sectorList += sectors[i].Sector.SectorName + " <br />";
+                                    }
+                                    <a class="role='button'" data-bs-toggle="collapse" href="#collapseSector@(item.ID)"
+                                       aria-expanded="false" aria-controls="collapseSector@(item.ID)">
+                                        @firstSector <span class="badge bg-info">@sectorCount</span>
+                                    </a>
+                                    <div class="collapse" id="collapseSector@(item.ID)">
+                                        @Html.Raw(sectorList)
+                                    </div>
+                                }
+                                else
+                                {
+                                    @firstSector
+                                }
+                            }
+                        }
+                    </td> *@
+
+
+
+
+                    <!-- New Columns -->
+                    <td>
+                        @{
+                            int naicsCount = item.IndustryNAICSCodes.Count;
+                            if (naicsCount > 0)
+                            {
+                                string firstNaics = item.IndustryNAICSCodes.FirstOrDefault().NAICSCode.Code;
+                                if (naicsCount > 1)
+                                {
+                                    string naicsList = ""; // HTML string of NAIC code names separated by <br /> tags
+                                    var naicsCodes = item.IndustryNAICSCodes.ToList();
+                                    for (int i = 1; i < naicsCount; i++) // Skip the first because we have it already
+                                    {
+                                        naicsList += naicsCodes[i].NAICSCode.Code + " <br />";
+                                    }
+                                    <a class="member-toggle" data-bs-toggle="collapse" href="#collapseNAICS@(item.ID)"
+                                       aria-expanded="false" aria-controls="collapseNAICS@(item.ID)">
+                                        @firstNaics <span class="participant-badge">@naicsCount</span>
+                                    </a>
+                                    <div class="collapse" id="collapseNAICS@(item.ID)">
+                                        @Html.Raw(naicsList)
+                                    </div>
+                                }
+                                else
+                                {
+                                    @firstNaics
+                                }
+                            }
+                        }
+                    </td>
+
+                    <td>
+                        @{
+                            int nameContactCount = item.MemberContacts.Count;
+                            if (nameContactCount > 0)
+                            {
+                                var nameContacts = item.MemberContacts.ToList();
+                                var nameFirstContact = nameContacts[0].Contact;
+
+                                if (nameContactCount > 1)
+                                {
+                                    string nameList = "";
+                                    for (int i = 1; i < nameContactCount; i++)
+                                    {
+                                        var contact = nameContacts[i].Contact;
+                                        if (contact != null)
+                                        {
+                                            nameList += $"{contact.FirstName} {contact.LastName}<br />";
+                                        }
+                                    }
+                                    <a class="member-toggle" data-bs-toggle="collapse" href="#collapseName@(item.ID)"
+                                       aria-expanded="false" aria-controls="collapseName@(item.ID)">
+                                        @nameFirstContact.FirstName @nameFirstContact.LastName
+                                        <span class="participant-badge">@nameContactCount</span>
+                                    </a>
+                                    <div class="collapse" id="collapseName@(item.ID)">
+                                        @Html.Raw(nameList)
+                                    </div>
+                                }
+                                else
+                                {
+                                    <text>@nameFirstContact.FirstName @nameFirstContact.LastName</text>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-muted">No Contacts Available</span>
+                            }
+                        }
+                    </td>
+
+
+
+                    <td>
+                        @{
+                            int emailContactCount = item.MemberContacts.Count;
+                            if (emailContactCount > 0)
+                            {
+                                var emailContacts = item.MemberContacts.ToList();
+                                var emailFirstContact = emailContacts[0].Contact;
+
+                                if (emailContactCount > 1)
+                                {
+                                    string emailList = "";
+                                    for (int i = 1; i < emailContactCount; i++)
+                                    {
+                                        var contact = emailContacts[i].Contact;
+                                        if (contact != null)
+                                        {
+                                            emailList += $"<a href='mailto:{contact.Email}'>{contact.Email}</a><br />";
+                                        }
+                                    }
+                                    <div>
+                                        <!-- Email mailto link -->
+                                        <a href="mailto:@emailFirstContact.Email">@emailFirstContact.Email</a>
+
+                                        <!-- Collapse toggle badge -->
+                                        <a href="#collapseEmail@(item.ID)"
+                                           class="ms-2 text-decoration-none"
+                                           data-bs-toggle="collapse"
+                                           aria-expanded="false"
+                                           aria-controls="collapseEmail@(item.ID)">
+                                            <span class="participant-badge badge bg-info">@emailContactCount</span>
+                                        </a>
+                                    </div>
+
+                                    <!-- Collapsible content -->
+                                    <div class="collapse mt-1" id="collapseEmail@(item.ID)">
+                                        @Html.Raw(emailList)
+                                    </div>
+                                }
+                                else
+                                {
+                                    <a href="mailto:@emailFirstContact.Email">@emailFirstContact.Email</a>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-muted">No Contacts Available</span>
+                            }
+                        }
+                    </td>
+
+
+
+
+
+                </tr>
+            }
+        </tbody>
+
+    </table>
+    <partial name="_PagingNavBar" />
+
+</form>
+
+<div id="previewContainer" class="preview-content hidden"></div>
+
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            // Initially hide the preview content
+            $('#previewContainer').addClass('hidden');
+
+            // Handle click event on rows with the "clickable-row" class
+            $(document).on('click', '.clickable-row', function (event) {
+                var contactId = $(this).data('id'); // Get the Contact ID from the row's data attribute
+
+                if (!contactId) {
+                    console.error('No contact ID found for this row.');
+                    return;
+                }
+                    // Check if the click is on the collapse toggle (anchor with 'data-bs-toggle="collapse"')
+        if ($(event.target).is('a') && $(event.target).attr('data-bs-toggle') === 'collapse') {
+            // Do nothing if the click is on a collapse trigger
+            return;
+        }
+                // Make an AJAX request to get the partial view for the selected contact
+                $.ajax({
+                    url: '/Member/GetMemberPreview', // Adjust the URL to match your routing
+                    type: 'GET',
+                    data: { id: contactId },
+                    success: function (result) {
+                        // Insert the result (partial view) into the preview container
+                        $('#previewContainer').html(result);
+                        $('#previewContainer').removeClass('hidden').addClass('visible'); // Show the preview
+
+                        // Assign the close event to the button inside the loaded preview
+                        $('#previewContainer').find('input[name="btnClose"]').on('click', function () {
+                            $('#previewContainer').removeClass('visible').addClass('hidden');
+                        });
+
+
+
+                        // Assign the save event to the save button inside the loaded preview
+                        $('#previewContainer').find('#saveNoteBtn').on('click', function (e) {
+                            e.preventDefault(); // Prevent default button behavior
+
+                            var memberId = $("#MemberId").val();
+                            var note = $("#Note").val();
+
+                            if (!memberId || !note.trim()) {
+                                $("#responseMessage").text("Note cannot be empty!").addClass("text-danger").removeClass("text-success").show();
+                                return;
+                            }
+
+                            $.ajax({
+                                type: "POST",
+                                url: "/Member/SaveMemberNote",
+                                data: { id: memberId, note: note },
+                                dataType: "json",
+                                success: function (response) {
+                                    if (response.success) {
+                                        $("#responseMessage").text(response.message).addClass("text-success").removeClass("text-danger").show();
+                                    } else {
+                                        $("#responseMessage").text(response.message).addClass("text-danger").removeClass("text-success").show();
+                                    }
+                                },
+                                error: function () {
+                                    $("#responseMessage").text("An unexpected error occurred.").addClass("text-danger").removeClass("text-success").show();
+                                }
+                            });
+                        });
+
+
+                    },
+                    error: function () {
+                        alert('An error occurred while loading the preview.');
+                    }
+                });
+            });
+
+            // Window click listener to collapse preview when clicked outside
+            $(window).click(function (event) {
+                if (!$(event.target).closest('#previewContainer, .clickable-row').length) {
+                    $('#previewContainer').removeClass('visible').addClass('hidden');
+                }
+
+            });
+
+            // Prevent the preview container from closing when clicked inside
+            $('#previewContainer').click(function (event) {
+                event.stopPropagation(); // Stop the event from propagating to the window
+            });
+        });
+
+        function clearFilter(filterName) {
+            // Get the current URL
+            var url = window.location.href.split('?')[0]; // Current URL without query string
+
+            // Get the query parameters from the URL
+            var params = new URLSearchParams(window.location.search);
+            params.delete(filterName);
+
+            // Reload the page with the updated query string (filters removed)
+            window.location.href = url + '?' + params.toString();
+        }
+    </script>
+    <script type="text/javascript">
+        document.addEventListener("DOMContentLoaded", function () {
+            var modal = document.getElementById('addCancellationModal'); // Fixed modal ID
+
+            // When the modal is about to be shown
+            modal.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget;  // Button that triggered the modal
+                var memberId = button.getAttribute('data-id');  // Get Member ID from button
+
+                console.log("Member ID received:", memberId); // Debugging log
+
+                // Set the Member ID in the hidden input field inside the modal
+                //document.getElementById('MemberID').value = memberId;
+
+                // Make AJAX GET request to fetch member data and fill the form dynamically
+                $.ajax({
+                    type: "GET",
+                    url: '/Cancellation/Create',  // Ensure this points to the correct action URL
+                    data: { memberId: memberId },
+                    success: function (response) {
+                        console.log(response.memberName);
+                        if (response.success) {
+                            // Populate the form with the received data
+                            $('#createCancellationForm').find('input[name="MemberID"]').val(response.memberId);
+                           // $('#MemberID').val(response.memberId);  // Set MemberID in the form field
+                            $('#MemberName').text(response.memberName);  // Optionally display MemberName in the modal header or form
+                        } else {
+                            console.error("Failed to fetch member data:", response.message);
+                        }
+                    },
+                    error: function (xhr) {
+                        console.error("Error fetching member data:", xhr);
+                    }
+                });
+            });
+
+            // Handle form submission with AJAX
+            $('#submitCancellationCreate').click(function (event) {
+            event.preventDefault();  // Prevent default form submission
+            clearErrors();  // Clear previous error messages
+
+            var form = $('#createCancellationForm'); // Fixed form ID
+            var memberId = $('#MemberID').val(); // Get Member ID from hidden input field
+            memberId = parseInt(memberId);
+            console.log("Submitting form for Member ID:", memberId); // Debugging log
+
+            // Validate the form
+            if (form.valid()) {
+                $.ajax({
+                    type: "POST",
+                    url: form.attr('action'),  // The form's action URL
+                    data: form.serialize() + "&MemberID=" + memberId, // Ensure MemberID is included
+                    success: function (response) {
+                        if (response.success) {
+                            $('#addCancellationModal').modal('hide');
+                            //alert(response.message); // Optionally show success message
+                            location.reload(); // Refresh page to reflect changes
+                        } else {
+                            console.error("Error: " + response.message);
+                            showErrorMessage(response.message); // Show error messages
+                        }
+                    },
+                    error: function (xhr) {
+                        console.error("Error: ", xhr);
+                        showErrorMessage("An unexpected error occurred."); // General error message
+                    }
+                });
+            }
+
+            return false; // Prevent default form submission
+        });
+
+        // Function to show error messages in the modal
+        function showErrorMessage(message) {
+            var ul = document.getElementById("ErrorList");
+            ul.innerHTML = "";  // Clear previous errors
+
+            // Split and display each error message
+            var errors = message.split("|");
+            errors.forEach(function (error) {
+                var li = document.createElement("li");
+                li.innerHTML = error;
+                ul.appendChild(li);
+            });
+        }
+
+            // Function to handle error messages from AJAX response
+            function handleAjaxErrors(xhr) {
+                var errorMessages = [];
+                switch (xhr.status) {
+                    case 401:
+                        errorMessages.push("You must be logged in first.");
+                        break;
+                    case 403:
+                        errorMessages.push("You are not authorized for this action.");
+                        break;
+                    default:
+                        errorMessages = xhr.responseText.split("|").slice(0, -1);
+                }
+
+                if (!errorMessages.some((str) => str !== "")) {
+                    errorMessages.push("Error: Unable to complete operation");
+                }
+
+
+            }
+
+            // Function to clear previous error messages
+            function clearErrors() {
+                var ul = document.getElementById("ErrorList");
+                ul.innerHTML = "";  // Clear previous error messages
+            }
+        });
+    </script>
+
+
+}

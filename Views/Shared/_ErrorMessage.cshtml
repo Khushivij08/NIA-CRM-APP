@@ -1,0 +1,24 @@
+﻿@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" id="errorAlert">
+        @TempData["Error"]
+        <button type="button" class="btn btn-link text-dark" data-bs-dismiss="alert" aria-label="Close" style="position: absolute; right: 10px; bottom: 0px; font-size: 1.5rem; padding: 0.5rem 1rem;">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <script type="text/javascript">
+        // Automatically hide the error alert after 5 seconds
+        setTimeout(function() {
+            $('#errorAlert').fadeOut('slow', function() {
+                // Call the server to clear the TempData after the alert fades out
+                $.ajax({
+                    url: '@Url.Action("ClearTempData", "Home")',
+                    type: 'POST',
+                    success: function(response) {
+                        // Optionally handle the success callback
+                    }
+                });
+            });
+        }, 5000); // 5000 ms = 5 seconds
+    </script>
+}

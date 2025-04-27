@@ -1,0 +1,10 @@
+﻿Add-Migration -Context NIACRMContext -o Data\NIACRMigration Initial
+Update-Database -Context NIACRMContext 
+
+Add-Migration -Context ApplicationDbContext -OutputDir Data\Migrations Initial
+Update-Database -Context ApplicationDbContext
+
+
+// Auditable and concurrency
+Add-Migration -Context NIACRMContext -o Data\NIACRMigration Auditable
+Add-Migration -Context NIACRMContext -o Data\NIACRMigration ConcurrencyProductionEmail

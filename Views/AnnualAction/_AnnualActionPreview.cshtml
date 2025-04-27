@@ -1,0 +1,182 @@
+﻿@model NIA_CRM.Models.AnnualAction
+
+<div>
+
+
+    <div class="d-flex justify-content-between align-items-center px-2 mb-3">
+        <h3>Annual Action Preview</h3>
+        <input type="button" name="btnClose" value="X" id="btnClose" class="btn btn-danger" />
+    </div>
+
+    <div class="card card-body bg-light text-black">
+        <div>
+            <dt>@Html.DisplayNameFor(model => model.Name):</dt>
+            <dd class="col-sm-8">
+                @Html.DisplayFor(model => model.Name)
+            </dd>
+
+            <dt>@Html.DisplayNameFor(model => model.Asignee):</dt>
+            <dd class="col-sm-8">
+                @Html.DisplayFor(model => model.Asignee)
+            </dd>
+
+            <dt>@Html.DisplayNameFor(model => model.AnnualStatus):</dt>
+            <dd class="col-sm-8">
+                @Html.DisplayFor(model => model.AnnualStatus)
+            </dd>
+            <dt>@Html.DisplayNameFor(model => model.Date):</dt>
+            <dd class="col-sm-8">
+                @Html.DisplayFor(model => model.Date)
+            </dd>
+
+            @*  <dt class="col-sm-4">Note:</dt>
+            <dd class="col-sm-8">
+                @Html.DisplayFor(model => model.Note)
+            </dd> *@
+        </div>
+        <div>
+
+            <div id="responseMessage"></div>
+            @if (User.IsInRole("Admin"))
+            {
+
+                <form id="saveNoteForm" asp-action="SaveMemberNote" asp-controller="Member" method="post">
+                    <input type="hidden" id="ContactId" name="id" value="@Model.ID" />
+                    <label for="Note">Contact Note</label>
+                    <textarea id="Note" name="note" placeholder="Enter your note..." class="form-control">@Model.Note</textarea>
+                    <input type="button" id="saveNoteBtn" value="Save Note" class="btn btn-primary mt-2" />
+                </form>
+            }
+        </div>
+
+    </div>
+    <div class="sticky-buttons mt-3">
+        <div class="sticky-buttons-container">
+            @if (User.IsInRole("Admin"))
+            {
+                <button class="btn btn-dark" onclick="confirmDelete('@Model.ID')">Delete</button>
+
+                <a class="btn btn-primary" asp-controller="AnnualAction" asp-action="Edit" asp-route-id="@Model.ID">Edit</a>
+            }
+        </div>
+    </div>
+</div>
+
+@* Place this script directly on the page, not in a section *@
+<script>
+    // Define confirmDelete in the global scope
+    function confirmDelete(id) {
+        console.log("confirmDelete called with ID:", id);
+        window.deleteId = id;
+        $("#deleteConfirmationModal").modal("show");
+    }
+</script>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmationModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this annual action?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" id="cancelDeleteBtn">Cancel</button>
+                <button type="button"  class="btn btn-secondary" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Immediately attach event handlers (don't wait for document.ready)
+    $(function () {
+        console.log("Attaching button event handlers");
+
+        // Debug if buttons exist in DOM
+        console.log("Cancel button exists:", $("#cancelDeleteBtn").length > 0);
+        console.log("Delete button exists:", $("#confirmDeleteBtn").length > 0);
+
+        // Use direct click handlers instead of on() method
+        $("#cancelDeleteBtn").click(function () {
+            console.log("Cancel button clicked");
+            $("#deleteConfirmationModal").modal("hide");
+        });
+
+        $("#confirmDeleteBtn").click(function () {
+            console.log("Delete button clicked, deleteId:", window.deleteId);
+            if (window.deleteId) {
+                $.ajax({
+                    url: '/AnnualAction/DeleteConfirmed',
+                    type: 'POST',
+                    data: {
+                        id: window.deleteId,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert("Error: " + response.message);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("AJAX Error:", xhr.responseText);
+                        alert("An error occurred while deleting.");
+                    }
+                });
+
+                $("#deleteConfirmationModal").modal("hide");
+            }
+        });
+    });
+</script>
+
+@section Scripts {
+    <script>
+        // Additional script to ensure event handlers are attached after page load
+        $(document).ready(function () {
+            console.log("Document ready - rechecking buttons");
+
+            // Try alternate approach for event handling
+            $(document).on('click', '#cancelDeleteBtn', function () {
+                console.log("Cancel button clicked (document delegate)");
+                $("#deleteConfirmationModal").modal("hide");
+            });
+
+            $(document).on('click', '#confirmDeleteBtn', function () {
+                console.log("Delete button clicked (document delegate), deleteId:", window.deleteId);
+                if (window.deleteId) {
+                    $.ajax({
+                        url: '/AnnualAction/DeleteConfirmed',
+                        type: 'POST',
+                        data: {
+                            id: window.deleteId,
+                            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                alert(response.message);
+                                location.reload();
+                            } else {
+                                alert("Error: " + response.message);
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error("AJAX Error:", xhr.responseText);
+                            alert("An error occurred while deleting.");
+                        }
+                    });
+
+                    $("#deleteConfirmationModal").modal("hide");
+                }
+            });
+        });
+    </script>
+}

@@ -1,0 +1,148 @@
+﻿@model NIA_CRM.Models.MEvent
+
+
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h1>Edit</h1>
+
+<h4>Event</h4>
+<hr />
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <form asp-action="Edit">
+        <div class="card card-body bg-light text-black">
+            
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="RowVersion" />
+
+                <div class="row">
+                    <!-- First Column: Event Name, Location -->
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="EventName" class="control-label"></label>
+                            <span class="required-label">(required)</span>
+                            <input asp-for="EventName" class="form-control" />
+                            <span asp-validation-for="EventName" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="EventLocation" class="control-label"></label>
+                            <input asp-for="EventLocation" class="form-control" />
+                            <span asp-validation-for="EventLocation" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <!-- Second Column: Event Date -->
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="EventDate" class="control-label"></label>
+                            <span class="required-label">(required)</span>
+                            <input asp-for="EventDate" class="form-control" />
+                            <span asp-validation-for="EventDate" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Participants</label>
+                        <div class="row">
+                            <!-- Available Members -->
+                            <div class="col-md-5">
+                                <label>Available Members</label>
+                                <input type="text" id="searchAvailable" class="form-control mb-2" placeholder="Search available members...">
+                                <select id="availableMembers" class="form-control" multiple size="10">
+                                    @foreach (var member in ViewBag.Members)
+                                    {
+                                        if (!ViewBag.SelectedMembers.Contains(member.Id))
+                                        {
+                                            <option value="@member.Id">@member.MemberName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+
+                            <!-- Buttons to Move Selection -->
+                            <div class="col-md-2 text-center d-flex flex-column justify-content-center">
+                                <button type="button" id="btnAdd" class="btn btn-secondary mb-2">&gt;&gt;</button>
+                                <button type="button" id="btnRemove" class="btn btn-light">&lt;&lt;</button>
+                            </div>
+
+                            <!-- Selected Members -->
+                            <div class="col-md-5">
+                                <label>Selected Members</label>
+                                <input type="text" id="searchSelected" class="form-control mb-2" placeholder="Search selected members...">
+                                <select id="selectedMembers" name="SelectedMembers" class="form-control" multiple size="10">
+
+                                    @foreach (var member in ViewBag.Members)
+                                    {
+                                        if (ViewBag.SelectedMembers.Contains(member.Id))
+                                        {
+                                            <option value="@member.Id" selected>@member.MemberName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+
+                <!-- Event Description Below -->
+                <div class="form-group">
+                    <label asp-for="EventDescription" class="control-label"></label>
+                    <textarea asp-for="EventDescription" class="form-control" rows="4"></textarea>
+                    <span asp-validation-for="EventDescription" class="text-danger"></span>
+                </div>
+
+                
+
+            
+                </div>
+                <div class="position-bottom-left">
+                <a class="btn btn-dark me-2" asp-action="Index">Back to Events</a>
+                <input type="submit" value="Save" class="btn btn-primary" />
+                </div>
+        </form>
+    </div>
+</div>
+
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+
+    <script>
+        $(document).ready(function () {
+            // Move selected items from available to selected
+            $('#btnAdd').click(function () {
+                $('#availableMembers option:selected').each(function () {
+                    $(this).remove().appendTo('#selectedMembers');
+                });
+            });
+
+            // Move selected items from selected back to available
+            $('#btnRemove').click(function () {
+                $('#selectedMembers option:selected').each(function () {
+                    $(this).remove().appendTo('#availableMembers');
+                });
+            });
+
+            // Make sure selected members are sent in the form submission
+            $('form').submit(function () {
+                $('#selectedMembers option').prop('selected', true); // Mark all as selected
+
+                // Debugging: Print selected members in console
+                var selected = [];
+                $('#selectedMembers option:selected').each(function () {
+                    selected.push($(this).val());
+                });
+
+                console.log("Selected Members before submission:", selected);
+            });
+        });
+    </script>
+
+}

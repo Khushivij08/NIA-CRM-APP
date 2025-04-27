@@ -1,0 +1,46 @@
+﻿@model NIA_CRM.Models.ContactCancellation
+
+<form asp-controller="ContactCancellation" asp-action="Create" method="post" id="createCancellationForm">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="text-danger validation-summary-errors">
+                <ul id="ErrorList"></ul>
+            </div>
+
+            <!-- Hidden field to store MemberId (set dynamically by JavaScript) -->
+            <input type="hidden" id="ContactID" name="ContactID" />
+            <input class="form-check-input" asp-for="IsCancelled" id="IsCancelled" type="checkbox" checked style="display:none;" />
+
+
+            <div class="alert alert-info">
+                <strong>Contact: </strong>
+                <label id="ContactName"></label>
+
+            </div>
+
+
+
+            <div class="form-group">
+                <label asp-for="CancellationDate" class="control-label"></label>
+                <input asp-for="CancellationDate" class="form-control" type="date" value="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                <span asp-validation-for="CancellationDate" class="text-danger"></span>
+            </div>
+
+            @* <div class="form-group form-check">
+                <input class="form-check-input" asp-for="IsCancelled" id="IsCancelled" type="checkbox" checked />
+                <label class="form-check-label" for="IsCancelled">@Html.DisplayNameFor(model => model.IsCancelled)</label>
+                <span asp-validation-for="IsCancelled" class="text-danger"></span>
+            </div> *@
+
+            <div class="form-group">
+                <label asp-for="CancellationNote" class="control-label"></label>
+                <textarea asp-for="CancellationNote" class="form-control"></textarea>
+                <span asp-validation-for="CancellationNote" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <button type="submit" id="submitCancellationCreate" class="btn btn-outline-dark">Save</button>
+            </div>
+        </div>
+    </div>
+</form>

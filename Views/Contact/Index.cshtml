@@ -1,0 +1,966 @@
+﻿@model IEnumerable<NIA_CRM.Models.Contact>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+
+
+
+<partial name="_addArchiveModal" />
+<partial name="_notificationModal" />
+<partial name="_SuccessMessage" />
+@* <partial name="_PersistContactSelections" /> *@
+
+
+
+
+<!-- Export Fields Modal for Contacts -->
+<div class="modal fade" id="exportContactsModal" tabindex="-1" aria-labelledby="exportContactsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exportContactsModalLabel">Select Fields to Export</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="exportContactsForm" asp-action="ExportSelectedContactsFields" method="post">
+                    @* Hidden fields to pass the filters to the Export Controller *@
+                    <input type="hidden" name="SearchString" id="modalSearchString" value="@ViewData["SearchString"]">
+                    <input type="hidden" name="Title" id="modalTitleFilter" value="@ViewData["TitlesFilter"]">
+                    <input type="hidden" name="Department" id="modalDepartmentFilter" value="@ViewData["DepartmentsFilter"]">
+                    <input type="hidden" name="VIP" id="modalVipFilter" value="@ViewData["IsVIPFilter"]">
+                    <input type="hidden" name="MemberNameSearchString" id="modalMemberNameSearchString" value="@ViewData["MemberNameSearchString"]">
+
+                    <div class="form-check mb-3">
+                        <input type="checkbox" class="form-check-input" id="includeFilters" name="applyFilters" value="true" checked>
+                        <label class="form-check-label" for="includeFilters">Include current filters in export</label>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <input type="checkbox" id="chkContactFirstName" name="selectedFields" value="ContactFirstName" checked>
+                            <label for="chkContactFirstName">Contact First Name</label>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" id="chkContactMiddleName" name="selectedFields" value="ContactMiddleName" checked>
+                            <label for="chkContactMiddleName">Contact Middle Name</label>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" id="chkContactLastName" name="selectedFields" value="ContactLastName" checked>
+                            <label for="chkContactLastName">Contact Last Name</label>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" id="chkContactTitle" name="selectedFields" value="ContactTitle" checked>
+                            <label for="chkContactTitle">Contact Title</label>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" id="chkContactDepartment" name="selectedFields" value="ContactDepartment" checked>
+                            <label for="chkContactDepartment">Contact Department</label>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" id="chkEmail" name="selectedFields" value="Email" checked>
+                            <label for="chkEmail">Email</label>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" id="chkPhone" name="selectedFields" value="Phone" checked>
+                            <label for="chkPhone">Phone</label>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" id="chkLinkedInUrl" name="selectedFields" value="LinkedInUrl" checked>
+                            <label for="chkLinkedInUrl">LinkedIn URL</label>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" id="chkIsVip" name="selectedFields" value="IsVip" checked>
+                            <label for="chkIsVip">Is VIP</label>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" id="chkContactNote" name="selectedFields" value="ContactNote" checked>
+                            <label for="chkContactNote">Contact Note</label>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" id="chkMemberName" name="selectedFields" value="MemberName" checked>
+                            <label for="chkMemberName">Member Name</label>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="exportContactsForm" class="btn btn-dark" data-bs-dismiss="modal">
+                    <i class="fa fa-file-excel text-white"></i> Export
+                </button>
+                <!-- Help Icon for Export Instructions -->
+                <i class="fa fa-question-circle help-icon ms-2" onclick="toggleVisibility('exportHelp')" title="Click for export instructions"></i>
+            </div>
+
+            <!-- Export Help Info -->
+            <div id="exportHelp" class="info-box" style="display: none; border: 1px solid #ccc; padding: 10px; margin: 10px; position: relative;">
+                <button class="close-btn" onclick="toggleVisibility('exportHelp')">×</button>
+                <h5>Export Instructions</h5>
+                <p>
+                    Select the fields you wish to export by checking the corresponding boxes.
+                    If you have applied filters, you can choose to export the filtered data. Then click the "Export" button to download the file.
+                </p>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+<div class="d-flex flex-row align-items-center justify-content-between mb-4">
+    <h1 class="mb-0" id="contacts-title">Contacts</h1>
+</div>
+<partial name="_ErrorMessage" />
+
+
+@if (User.IsInRole("Admin"))
+{
+        <form asp-action="ImportFromExcel" method="post" enctype="multipart/form-data">
+            <!-- Help Icon for import Instructions -->
+            <i class="fa fa-question-circle help-icon ms-2" onclick="toggleVisibility('importHelp')" title="Click for import instructions"></i>
+            <div class="d-flex align-items-center" style="padding-bottom: 10px;">
+
+                <button type="submit" class="btn btn-dark me-2" style="min-width: 150px;">
+                    <i class="fa fa-file-import"></i> Import Excel
+                </button>
+                <input type="file" name="file" class="form-control me-2" required />
+            </div>
+        </form>
+
+        <!-- Import Help Info -->
+        <div id="importHelp" class="info-box" style="display: none; border: 1px solid #ccc; padding: 10px; margin: 10px; position: relative;">
+            <button class="close-btn" onclick="toggleVisibility('importHelp')">×</button>
+            <h5>Import Instructions</h5>
+            <p>
+                To import contact details, upload an Excel file (.xlsx) with properly formatted data.
+                The first row of your file should contain the correct column headers to ensure a successful import.
+            </p>
+            <p>
+                Required fields include <strong>First Name</strong> and <strong>Email</strong>.
+                Other fields such as <strong>Title</strong>, <strong>Department</strong>, <strong>Phone</strong>, <strong>LinkedIn URL</strong>,
+                and <strong>VIP Status</strong> ("Yes" or "No") should be correctly formatted.
+            </p>
+            <p>
+                Ensure the following column structure:
+                <ul>
+                    <li><strong>Column 1:</strong> First Name (Text, Required)</li>
+                    <li><strong>Column 2:</strong> Last Name (Text, Optional)</li>
+                    <li><strong>Column 3:</strong> Title (Text, Job title)</li>
+                    <li><strong>Column 4:</strong> Department (Text, Department name)</li>
+                    <li><strong>Column 5:</strong> Phone (Text, e.g., 123-456-7890)</li>
+                    <li><strong>Column 6:</strong> Email (Text, Valid email address, Required)</li>
+                    <li><strong>Column 7:</strong> LinkedIn URL (Text, Full URL to LinkedIn profile)</li>
+                    <li><strong>Column 8:</strong> VIP Status (Text, "Yes" or "No")</li>
+                </ul>
+            </p>
+            <a href="/files/ContactImportSample.xlsx" download style="font-weight:bold;">
+                Download Sample Excel File for Import
+            </a>
+            <p>
+                Ensure all required data is included and headers match exactly, otherwise, the import may fail.
+            </p>
+        </div>
+}
+
+<form asp-action="Index" method="get" aria-labelledby="contacts-title">
+    <input type="hidden" name="sortDirection" value="@ViewData["sortDirection"]" />
+    <input type="hidden" name="sortField" value="@ViewData["sortField"]" />
+    @{
+        var sortField = ViewData["sortField"]?.ToString();
+        var sortDirection = ViewData["sortDirection"]?.ToString();
+    }
+
+
+
+    <!-- Filter/Search Section -->
+    <div class="m-auto flex-grow-1">
+        <div class="form-horizontal mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex flex-wrap" style="align-items: center;">
+                    <button class="btn btn-dark @ViewData["Filtering"] me-2 mb-2" type="button" id="filterToggle" data-bs-toggle="collapse" data-bs-target="#collapseFilter" aria-expanded="false" aria-controls="collapseFilter">
+                        Filter/Search @ViewData["numberFilters"]
+                    </button>
+                    @if (User.IsInRole("Admin"))
+                    {
+                            <button type="button" id="sendEmailButton" class="btn btn-primary me-2 mb-2" data-bs-toggle="modal" data-bs-target="#addNotificationModal">
+                                Send Email
+                            </button>
+                            <button type="button" class="btn btn-dark me-2 mb-2" id="toggleCheckboxes">
+                                Enable Contact Selection
+                            </button>
+
+                            <button type="button" class="btn btn-dark me-2 mb-2" data-bs-toggle="modal" data-bs-target="#exportContactsModal">
+                                <i class="fa fa-file-excel text-white"></i> Export To Excel
+                            </button>
+                            <i class="fa fa-question-circle help-icon ms-2" onclick="toggleVisibility('emailHelp')" title="Click for production email instructions"></i>
+
+                    }
+
+
+                </div>
+                @if (User.IsInRole("Admin"))
+                {
+                        <a asp-action="Create" class="btn btn-primary" aria-label="Add a new contact">+ Add Contact</a>
+                }
+
+            </div>
+
+        </div>
+
+    </div>
+    <div id="emailHelp" class="info-box" style="display: none; border: 1px solid #ccc; padding: 10px; margin: 10px; position: relative;">
+        <button class="close-btn" onclick="toggleVisibility('importHelp')">×</button>
+        <h5>Production Email Instructions</h5>
+        <p>
+            To send a production email, click on <strong>Enable Contact Selection</strong> and select the contacts you want to email. Clicking the checkbox in the table header will select all contacts.
+            Once the desired contacts are chosen, click the <strong>Send Email</strong> button. This will open a window where you can either choose one of the pre-created email templates or write a completely new email.
+            After filling in or selecting the email content, click <strong>Send Email</strong> in the window to complete the process.
+        </p>
+
+    </div>
+    <!-- Filters clear banners -->
+    @if (ViewData["numberFilters"] != null && ViewData["numberFilters"].ToString() != "0 Filters Applied")
+    {
+            <div class="filters-container mt-2">
+            @if (!string.IsNullOrEmpty(ViewData["SearchString"] as string))
+            {
+                        <span class="custom-filter-badge me-2">
+                            Member Name: @ViewData["SearchString"]
+                            <button type="button" class="ms-2 clear-btn" aria-label="Clear" onclick="clearFilter('SearchString')">x</button>
+                        </span>
+            }
+            @if (!string.IsNullOrEmpty(ViewData["MemberNameSearchString"] as string))
+            {
+                        <span class="custom-filter-badge me-2">
+                            Member Name: @ViewData["MemberNameSearchString"]
+                            <button type="button" class="ms-2 clear-btn" aria-label="Clear" onclick="clearFilter('MemberNameSearchString')">x</button>
+                        </span>
+            }
+
+            @if (ViewData["TitlesFilter"] != null)
+            {
+                        <span class="custom-filter-badge me-2">
+                            Title: @ViewData["TitlesFilter"]
+                            <button type="button" class="ms-2 clear-btn" aria-label="Clear" onclick="clearFilter('Titles')">x</button>
+                        </span>
+            }
+            @if (ViewData["DepartmentsFilter"] != null)
+            {
+                        <span class="custom-filter-badge me-2">
+                            Department: @ViewData["DepartmentsFilter"]
+                            <button type="button" class="ms-2 clear-btn" aria-label="Clear" onclick="clearFilter('Departments')">x</button>
+                        </span>
+            }
+            @if (ViewData["IsVIPFilter"] != null)
+            {
+                        <span class="custom-filter-badge me-2">
+                            VIPs: @ViewData["IsVIPFilter"]
+                            <button type="button" class="ms-2 clear-btn" aria-label="Clear" onclick="clearFilter('IsVIP')">x</button>
+                        </span>
+            }
+            </div>
+
+
+    }
+
+
+
+
+    <div class="collapse @ViewData["ShowFilter"] mt-2" id="collapseFilter">
+        <div class="card card-body bg-light">
+            <div class="row">
+                <div class="form-group col-md-3">
+                    <label for="search-name" class="control-label">Search By Contact Name:</label>
+                    @Html.TextBox("SearchString", null, new { @class = "form-control", id = "search-name", placeholder = "Enter Contact Name" })
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="search-name" class="control-label">Search By Member Name:</label>
+                    @Html.TextBox("MemberNameSearchString", ViewData["MemberNameSearchString"] as string, new { @class = "form-control", id = "search-name", placeholder = "Enter Member Name" })
+                </div>
+
+                <div class="form-group col-md-3">
+                    <label for="filter-title" class="control-label">Filter by Title:</label>
+                    @Html.DropDownList("Titles", null, "All Titles", htmlAttributes: new { @class = "form-control", id = "filter-title" })
+                </div>
+
+                <div class="form-group col-md-3">
+                    <label for="filter-department" class="control-label">Filter by Department:</label>
+                    @Html.DropDownList("Departments", null, "All Departments", htmlAttributes: new { @class = "form-control", id = "filter-department" })
+                </div>
+
+                <div class="form-group col-md-3 d-flex mt-1">
+                    <label class="control-label me-2" for="OnlyVIP">Only VIPs:</label>
+                    @Html.CheckBox("IsVIP", htmlAttributes: new { @class = "form-check-input", id = "OnlyVIP" })
+                </div>
+
+            </div>
+            <div class="form-group col-md-4 d-flex align-items-end mt-2">
+                <input type="submit" name="actionButton" value="Apply Filters" class="btn btn-primary me-2" />
+                <a asp-action="Index" class="btn btn-dark">Clear Filters</a>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div class="d-flex justify-content-between align-items-center">
+        <label class="control-label">@ViewData["records"]</label>
+        <i class="fa fa-question-circle help-icon ms-2" onclick="toggleVisibility('prreviewHelp')" title="Click for preview panel instructions"></i>
+    </div>
+    <div id="prreviewHelp" class="info-box" style="display: none; border: 1px solid #ccc; padding: 10px; margin: 10px; position: relative;">
+        <button class="close-btn" onclick="toggleVisibility('importHelp')">×</button>
+        <h5>Preview Panel Instructions</h5>
+        <p>
+            By clicking on a record row, a side panel will appear with a preview of the record's details.
+            In the Preview panel, you can quickly review the record's information and perform various actions:
+            <br />
+            - Navigate to the Edit contact page
+            <br />
+            - Archive the contact <br />
+            - View the full details page for this conatct and member it's assigned to <br />
+
+            Additionally, you can edit or add notes about the contact directly in the Preview panel and save them instantly.
+        </p>
+    </div>
+
+    <!-- Contacts Table -->
+    <table class="table table-bordered table-striped" id="contacts-table" aria-labelledby="contacts-title">
+        <caption class="sr-only">Contacts table showing filtered results</caption>
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col" class="table-head" id="checkboxHeader" style="display: none;">
+                    <input type="checkbox" id="selectAllCheckboxes" style="display: none;">
+                </th>
+                <th scope="col" class="table-head">
+                    @{
+
+                        var isCurrentSortField = sortField == "Contact Name";
+                        var sortOrderIndicator = isCurrentSortField ? (sortDirection == "asc" ? "↑" : "↓") : "";
+                    }
+
+
+                    @if (isCurrentSortField)
+                    {
+                            <input type="submit" name="actionButton" value="Contact Name" class="btn btn-link" aria-label="Sort by Contact Name" />
+                            <span class="SortIndicator">@sortOrderIndicator</span>
+                    }
+                    else
+                    {
+                            <input type="submit" name="actionButton" value="Contact Name" class="btn btn-link" aria-label="Sort by Contact Name" />
+                    }
+                </th>
+                <th scope="col" class="table-head">
+                    @{
+                        var isEmailSortField = sortField == "Email";
+                        var EmailSortIndicator = isEmailSortField ? (sortDirection == "asc" ? "↑" : "↓") : "";
+                    }
+                    @if (isEmailSortField)
+                    {
+                            <input type="submit" name="actionButton" value="Email" class="btn btn-link" aria-label="Sort by Email" />
+                            <span class="SortIndicator">@EmailSortIndicator</span>
+                    }
+                    else
+                    {
+                            <input type="submit" name="actionButton" value="Email" class="btn btn-link" aria-label="Sort by Email" />
+                    }
+                </th>
+                <th scope="col" class="table-head">
+                    @{
+                        var isPhoneSortField = sortField == "Phone";
+                        var PhoneSortIndicator = isPhoneSortField ? (sortDirection == "asc" ? "↑" : "↓") : "";
+                    }
+                    @if (isPhoneSortField)
+                    {
+                            <input type="submit" name="actionButton" value="Phone" class="btn btn-link" aria-label="Sort by Phone" />
+                            <span class="SortIndicator">@PhoneSortIndicator</span>
+                    }
+                    else
+                    {
+                            <input type="submit" name="actionButton" value="Phone" class="btn btn-link" aria-label="Sort by Phone" />
+                    }
+                </th>
+                <th scope="col" class="table-head">@Html.DisplayNameFor(model => model.LinkedInUrl)</th>
+                <th scope="col" class="table-head">
+                    @{
+                        var isVIPSortField = sortField == "VIP";
+                        var VIPSortIndicator = isVIPSortField ? (sortDirection == "asc" ? "↑" : "↓") : "";
+                    }
+                    @if (isVIPSortField)
+                    {
+                            <input type="submit" name="actionButton" value="VIP" class="btn btn-link" aria-label="Sort by VIP" />
+                            <span class="SortIndicator">@VIPSortIndicator</span>
+                    }
+                    else
+                    {
+                            <input type="submit" name="actionButton" value="VIP" class="btn btn-link" aria-label="Sort by VIP" />
+                    }
+                </th>
+                <th scope="col" class="table-head">
+                    @{
+                        var isMemberNameSortField = sortField == "Member Name";
+                        var memberNameSortIndicator = isMemberNameSortField ? (sortDirection == "asc" ? "↑" : "↓") : "";
+                    }
+                    @if (isMemberNameSortField)
+                    {
+                            <input type="submit" name="actionButton" value="Member Name" class="btn btn-link" aria-label="Sort by Member Name" />
+                            <span class="SortIndicator">@memberNameSortIndicator</span>
+                    }
+                    else
+                    {
+                            <input type="submit" name="actionButton" value="Member Name" class="btn btn-link" aria-label="Sort by Member Name" />
+                    }
+                </th>
+
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                    <tr class="clickable-row" data-id="@item.Id" title="Click on row to get preview">
+                        <td class="checkbox-cell" style="display: none;">
+                            <input type="checkbox" class="contact-checkbox" name="selectedContactIds" value="@item.Id" style="display: none;">
+                        </td>
+
+                        <td>@Html.DisplayFor(modelItem => item.Summary)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Email)</td>
+                        <td>
+                            <a href="tel:@item.PhoneFormatted" id="phoneNumber">@item.PhoneFormatted</a>
+                        </td>
+                        <td>
+                            <a href="@item.LinkedInUrl" target="_blank" aria-label="Open LinkedIn profile of @item.FirstName @item.LastName">View LinkedIn</a>
+                        </td>
+                        <td>
+                        @if (item.IsVip)
+                        {
+                                    <span class="badge bg-warning text-dark ms-2">VIP</span>
+                        }
+                        @* else
+                        {
+                            @Html.DisplayFor(modelItem => item.IsVip)
+                        } *@
+                        </td>
+                        <td>
+                        @{
+                            int memberCount = item.MemberContacts?.Count ?? 0;
+
+                            if (memberCount > 0)
+                            {
+                                var members = item.MemberContacts
+                                .Select(mc => mc.Member?.MemberName)
+                                .Where(name => !string.IsNullOrEmpty(name))
+                                .Distinct()
+                                .ToList();
+
+                                int distinctCount = members.Count;
+
+                                if (distinctCount > 0)
+                                {
+                                    string firstMember = members.First();
+                                    if (distinctCount > 1)
+                                    {
+                                        string memberList = "";
+                                        for (int i = 1; i < distinctCount; i++)
+                                        {
+                                            memberList += members[i] + " <br />";
+                                        }
+                                                            <a role="button" class="member-toggle"
+                                                               data-bs-toggle="collapse"
+                                                               href="#collapseMembers@(item.Id)"
+                                                               aria-expanded="false"
+                                                               aria-controls="collapseMembers@(item.Id)">
+                                            @firstMember <span class="participant-badge">@distinctCount</span>
+                                                            </a>
+                                                            <div class="collapse" id="collapseMembers@(item.Id)">
+                                            @Html.Raw(memberList)
+                                                            </div>
+                                    }
+                                    else
+                                    {
+                                        @firstMember
+                                    }
+                                }
+                            }
+                        }
+                        </td>
+
+                    </tr>
+            }
+
+        </tbody>
+    </table>
+
+    <!-- Preview Container -->
+    <div id="previewContainer" class="preview-content hidden" role="region" aria-labelledby="previewTitle">
+        <h2 id="previewTitle" class="sr-only">Preview Section</h2>
+        <!-- Preview content will be dynamically injected here -->
+    </div>
+
+
+
+    <partial name="_PagingNavBar" />
+</form>
+
+
+
+
+@section Scripts {
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+
+
+
+        <script type="text/javascript">
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            })
+        </script>
+
+        <script>
+            function clearFilter(filterName){
+                // Get the current URL
+                var url = window.location.href.split('?')[0]; // Current URL without query string
+
+                // Get the query parameters from the URL
+                var params = new URLSearchParams(window.location.search);
+                params.delete(filterName)
+
+                // Reload the page with the updated query string (filters removed)
+                window.location.href = url + '?' + params.toString();
+
+            };
+
+        </script>
+
+@* Notification Modal *@
+    <script type="text/javascript">
+        document.addEventListener("DOMContentLoaded", function () {
+            var modal = document.getElementById('addNotificationModal'); // Ensure modal ID is correct
+            var selectedContactIds = []; // Store selected contacts
+
+            // Prevent modal from opening if no checkbox is selected
+            $('#addNotificationModal').on('show.bs.modal', function (event) {
+                selectedContactIds = [];
+                document.querySelectorAll(".contact-checkbox:checked").forEach((checkbox) => {
+                    selectedContactIds.push(checkbox.value);
+                });
+
+                console.log("Selected Contact IDs:", selectedContactIds);
+
+                if (selectedContactIds.length === 0) {
+                    event.preventDefault(); // Stop modal from opening
+                    alert("Please select at least one contact before sending an email.");
+                    return false; // Stop execution
+                }
+
+                // Store selected IDs in a hidden input field inside the modal
+                document.getElementById("selectedContactIds").value = selectedContactIds.join(",");
+            });
+
+            // Handle form submission with AJAX
+            $('#submitNotificationForm').click(function (event) {
+                event.preventDefault();  // Prevent default form submission
+                clearErrors();  // Clear previous error messages
+
+                var form = $('#createNotificationForm'); // Ensure form ID is correct
+                var ContactIds = document.getElementById("selectedContactIds").value; // Hidden input value
+                var Subject = document.getElementById("emailSubject").value; // Subject input value
+                var Body = document.getElementById("emailBody").value; // Body textarea value
+                    // Check if both subject and body are empty
+                if (Subject.trim() === "" && Body.trim() === "") {
+                    alert("Please enter both subject and body for the email.");
+                    return; // Stop the form submission
+                }
+                console.log("Submitting form for Contact IDs:", ContactIds); // Debugging log
+
+                // Validate the form
+                if (form.valid()) {
+                    $.ajax({
+                        type: "POST",
+                        url: form.attr('action'),  // Form action URL
+                        data: {
+                            selectedContactIds: ContactIds,
+                            Subject: Subject,
+                            emailContent: Body
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                $('#addNotificationModal').modal('hide');
+                                location.reload(); // Refresh page to reflect changes
+                            } 
+                        },
+                        error: function (xhr) {
+                            var errorMessages = [];
+                            switch (xhr.status) {
+                                case 401:
+                                    errorMessages.push("You must be logged in first.");
+                                    break;
+                                case 403:
+                                    errorMessages.push("You are not authorized for this action.");
+                                    break;
+                                default:
+                                    // Messages coming from the Model State Errors
+                                    errorMessages = xhr.responseText.split("|").slice(0, -1);
+                            }
+
+                            if (!errorMessages.some((str) => str !== "")) {
+                                errorMessages.push("Error: Unable to complete operation");
+                            }
+
+                            // Display errors in the ErrorList UL
+                            var ul = document.getElementById("ErrorList");
+                            errorMessages.forEach(function (msg) {
+                                var li = document.createElement("li");
+                                li.innerHTML = msg;
+                                ul.appendChild(li);
+                            });
+                        }
+                    });
+                }
+            });
+
+            // Function to clear previous error messages
+            function clearErrors() {
+                var ul = document.getElementById("ErrorList");
+                ul.innerHTML = "";  // Clear previous error messages
+            }
+        });
+    </script>
+
+
+@* Contact cancelltion Modal *@
+        <script type="text/javascript">
+            document.addEventListener("DOMContentLoaded", function () {
+                var modal = document.getElementById('addCancellationModal'); // Fixed modal ID
+
+                // When the modal is about to be shown
+                modal.addEventListener('show.bs.modal', function (event) {
+                    var button = event.relatedTarget;  // Button that triggered the modal
+                    var ContactId = button.getAttribute('data-id');  // Get Member ID from button
+
+                    console.log("Contact ID received:", ContactId); // Debugging log
+
+
+                    // Make AJAX GET request to fetch member data and fill the form dynamically
+                    $.ajax({
+                        type: "GET",
+                        url: '/ContactCancellation/Create',  // Ensure this points to the correct action URL
+                        data: { ContactId: ContactId },
+                        success: function (response) {
+                            console.log(response.contactName);
+                            if (response.success) {
+                                // Populate the form with the received data
+                                $('#createCancellationForm').find('input[name="ContactID"]').val(response.contactId);
+                               // $('#MemberID').val(response.memberId);  // Set MemberID in the form field
+                                $('#ContactName').text(response.contactName);  // Optionally display MemberName in the modal header or form
+                            } else {
+                                console.error("Failed to fetch member data:", response.message);
+                            }
+                        },
+                        error: function (xhr) {
+                            console.error("Error fetching member data:", xhr);
+                        }
+                    });
+                });
+
+                // Handle form submission with AJAX
+                $('#submitCancellationCreate').click(function (event) {
+                event.preventDefault();  // Prevent default form submission
+                clearErrors();  // Clear previous error messages
+
+                var form = $('#createCancellationForm'); // Fixed form ID
+                var ContactId = $('#ContactID').val(); // Get Member ID from hidden input field
+                ContactId = parseInt(ContactId);
+                console.log("Submitting form for Contact ID:", ContactId); // Debugging log
+
+                // Validate the form
+                if (form.valid()) {
+                    $.ajax({
+                        type: "POST",
+                        url: form.attr('action'),  // The form's action URL
+                        data: form.serialize() + "&ContactID=" + ContactID, // Ensure MemberID is included
+                        success: function (response) {
+                            if (response.success) {
+                                $('#addCancellationModal').modal('hide');
+                                //alert(response.message); // Optionally show success message
+                                location.reload(); // Refresh page to reflect changes
+                            } else {
+                                console.error("Error: " + response.message);
+                                showErrorMessage(response.message); // Show error messages
+                            }
+                        },
+                        error: function (xhr) {
+                            console.error("Error: ", xhr);
+                            showErrorMessage("An unexpected error occurred."); // General error message
+                        }
+                    });
+                }
+
+                return false; // Prevent default form submission
+            });
+
+            // Function to show error messages in the modal
+            function showErrorMessage(message) {
+                var ul = document.getElementById("ErrorList");
+                ul.innerHTML = "";  // Clear previous errors
+
+                // Split and display each error message
+                var errors = message.split("|");
+                errors.forEach(function (error) {
+                    var li = document.createElement("li");
+                    li.innerHTML = error;
+                    ul.appendChild(li);
+                });
+            }
+
+                // Function to handle error messages from AJAX response
+                function handleAjaxErrors(xhr) {
+                    var errorMessages = [];
+                    switch (xhr.status) {
+                        case 401:
+                            errorMessages.push("You must be logged in first.");
+                            break;
+                        case 403:
+                            errorMessages.push("You are not authorized for this action.");
+                            break;
+                        default:
+                            errorMessages = xhr.responseText.split("|").slice(0, -1);
+                    }
+
+                    if (!errorMessages.some((str) => str !== "")) {
+                        errorMessages.push("Error: Unable to complete operation");
+                    }
+
+
+                }
+
+                // Function to clear previous error messages
+                function clearErrors() {
+                    var ul = document.getElementById("ErrorList");
+                    ul.innerHTML = "";  // Clear previous error messages
+                }
+            });
+        </script>
+
+        <script type="text/javascript">
+            $(document).ready(function () {
+                // Initially hide the preview content
+                $('#previewContainer').addClass('hidden');
+
+                // Handle click event on rows with the "clickable-row" class
+                $(document).on('click', '.clickable-row', function (event) {
+                    var contactId = $(this).data('id'); // Get the Contact ID from the row's data attribute
+
+                    if (!contactId) {
+                        console.error('No contact ID found for this row.');
+                        return;
+                    }
+
+                    // Check if the clicked element is inside the checkbox cell (td) with a specific ID
+                    var checkboxCell = $(event.target).closest('td.checkbox-cell'); // Assuming 'checkbox-cell' is the class for the checkbox's td
+
+                    if (checkboxCell.length > 0) {
+                        // Toggle the checkbox if it's inside a checkbox td
+                        var checkbox = checkboxCell.find('input[type="checkbox"]');
+                        if (checkbox.length > 0) {
+                            checkbox.prop('checked', !checkbox.prop('checked')); // Toggle checkbox state
+                            updateSelectedCheckboxes(checkbox); // Update the selected checkboxes in localStorage
+                            return; // Return immediately to prevent other row logic from running
+                        }
+                    }
+
+
+                    // Make an AJAX request to get the partial view for the selected contact
+                    $.ajax({
+                        url: '/Contact/GetContactPreview', // Adjust the URL to match your routing
+                        type: 'GET',
+                        data: { id: contactId },
+                        success: function (result) {
+                            // Insert the result (partial view) into the preview container
+                            $('#previewContainer').html(result);
+                            $('#previewContainer').removeClass('hidden').addClass('visible'); // Show the preview
+                            // Assign the close event to the button inside the loaded preview
+                            $('#previewContainer').find('input[name="btnClose"]').on('click', function () {
+                                $('#previewContainer').removeClass('visible').addClass('hidden');
+                            });
+
+                            // Assign the save event to the save button inside the loaded preview
+                            $('#previewContainer').find('#saveNoteBtn').on('click', function (e) {
+                                e.preventDefault(); // Prevent default button behavior
+
+                                var contactId = $("#ContactId").val();
+                                var note = $("#Note").val();
+
+                                if (!contactId || !note.trim()) {
+                                    $("#responseMessage").text("Note cannot be empty!").addClass("text-danger").removeClass("text-success").show();
+                                    return;
+                                }
+
+                                $.ajax({
+                                    type: "POST",
+                                    url: "/Contact/SaveContactNote",
+                                    data: { id: contactId, note: note },
+                                    dataType: "json",
+                                    success: function (response) {
+                                        if (response.success) {
+                                            $("#responseMessage").text(response.message).addClass("text-success").removeClass("text-danger").show();
+                                        } else {
+                                            $("#responseMessage").text(response.message).addClass("text-danger").removeClass("text-success").show();
+                                        }
+                                    },
+                                    error: function () {
+                                        $("#responseMessage").text("An unexpected error occurred.").addClass("text-danger").removeClass("text-success").show();
+                                    }
+                                });
+                            });
+                        },
+                        error: function () {
+                            alert('An error occurred while loading the preview.');
+                        }
+                    });
+                });
+
+                // Store selected checkboxes in localStorage
+                function updateSelectedCheckboxes(checkbox) {
+                    var selectedCheckboxes = JSON.parse(localStorage.getItem("selectedCheckboxes")) || [];
+
+                    var checkboxValue = checkbox.val();
+                    if (checkbox.prop('checked')) {
+                        if (!selectedCheckboxes.includes(checkboxValue)) {
+                            selectedCheckboxes.push(checkboxValue);
+                        }
+                    } else {
+                        var index = selectedCheckboxes.indexOf(checkboxValue);
+                        if (index !== -1) {
+                            selectedCheckboxes.splice(index, 1);
+                        }
+                    }
+
+                    localStorage.setItem("selectedCheckboxes", JSON.stringify(selectedCheckboxes));
+                }
+
+                // Window click listener to collapse preview when clicked outside
+                $(window).click(function (event) {
+                    if (!$(event.target).closest('#previewContainer, .clickable-row').length) {
+                        $('#previewContainer').removeClass('visible').addClass('hidden');
+                    }
+                });
+
+                // Prevent the preview container from closing when clicked inside
+                $('#previewContainer').click(function (event) {
+                    event.stopPropagation(); // Stop the event from propagating to the window
+                });
+
+
+
+                // Initialize variables for checkbox toggling
+                var toggleButton = document.getElementById("toggleCheckboxes");
+                var checkboxes = document.querySelectorAll(".contact-checkbox");
+                var selectAllCheckbox = document.getElementById("selectAllCheckboxes");
+                var checkboxHeader = document.getElementById("checkboxHeader");
+                var checkboxCells = document.querySelectorAll(".checkbox-cell");
+                var isVisible = localStorage.getItem("checkboxVisibility") === "enabled";
+                const sendEmailButton = document.getElementById('sendEmailButton');
+
+                // Restore checkbox states from localStorage or set to empty Set
+                var selectedCheckboxes = JSON.parse(localStorage.getItem("selectedCheckboxes")) || [];
+                sendEmailButton.style.display = isVisible ? "inline-block" : "none"; // or "block" if you prefer
+
+                // Restore checkbox states on initial load
+                function restoreCheckboxes() {
+                    checkboxes = document.querySelectorAll(".contact-checkbox");
+                    checkboxes.forEach(cb => {
+                        cb.checked = selectedCheckboxes.includes(cb.value);
+                    });
+
+                    // Restore Select All checkbox state
+                    if (selectAllCheckbox) {
+                        selectAllCheckbox.checked = checkboxes.length > 0 && [...checkboxes].every(cb => cb.checked);
+                    }
+                }
+
+                // Handle toggling checkboxes visibility
+                toggleButton?.addEventListener("click", function () {
+                    isVisible = !isVisible;
+                    localStorage.setItem("checkboxVisibility", isVisible ? "enabled" : "disabled"); // Save visibility flag
+
+                    checkboxes.forEach(cb => cb.style.display = isVisible ? "inline-flex" : "none");
+                    if (selectAllCheckbox) selectAllCheckbox.style.display = isVisible ? "inline-flex" : "none";
+                    if (checkboxHeader) checkboxHeader.style.display = isVisible ? "table-cell" : "none";
+                    checkboxCells.forEach(cell => cell.style.display = isVisible ? "table-cell" : "none");
+
+                    // Update the button text based on visibility
+                    toggleButton.textContent = isVisible ? "Disable Contact Selection" : "Enable Contact Selection";
+                    localStorage.setItem("toggleButtonState", isVisible ? "Disable Contact Selection" : "Enable Contact Selection");
+                    sendEmailButton.style.display = isVisible ? "inline-block" : "none";
+
+                });
+
+                // Handle individual checkbox selection
+                document.addEventListener("change", function (event) {
+                    if (event.target.classList.contains("contact-checkbox")) {
+                        updateSelectedCheckboxes($(event.target)); // Update localStorage on checkbox change
+                    }
+                });
+
+                // Handle Select All checkbox selection
+                selectAllCheckbox?.addEventListener("change", function () {
+                    checkboxes.forEach(cb => {
+                        cb.checked = selectAllCheckbox.checked;
+                        updateSelectedCheckboxes($(cb)); // Update localStorage
+                    });
+                });
+
+                // Restore checkboxes when pagination form is submitted
+                document.querySelector("form")?.addEventListener("submit", function () {
+                    setTimeout(restoreCheckboxes, 500); // Delay to ensure new rows are loaded
+                });
+
+
+
+                // Restore checkbox states and button text on initial load
+                restoreCheckboxes();
+                var savedButtonState = localStorage.getItem("toggleButtonState");
+                if (savedButtonState) {
+                    toggleButton.textContent = savedButtonState;
+                }
+
+                // Initially apply the visibility based on the flag
+                if (isVisible) {
+                    checkboxes.forEach(cb => cb.style.display = "inline-flex");
+                    if (selectAllCheckbox) selectAllCheckbox.style.display = "inline-flex";
+                    if (checkboxHeader) checkboxHeader.style.display = "table-cell";
+                    checkboxCells.forEach(cell => cell.style.display = "table-cell");
+                }
+            });
+        </script>
+        <script>
+                // JavaScript to toggle member rows with animation
+            $(document).ready(function () {
+                $(".toggle-members").on("click", function () {
+                    var targetId = $(this).data("target"); // Get the contact ID to target the correct member rows
+                    var memberRow = $("tr.member-row." + targetId); // Find the corresponding member row
+
+                    // Toggle the member row visibility with animation
+                    memberRow.slideToggle();
+
+                    // Change the button text depending on whether the rows are visible or not
+                    var button = $(this);
+                    if (memberRow.is(":visible")) {
+                        button.text("Hide Members");
+                    } else {
+                        button.text("Show Members");
+                    }
+                });
+            });
+        </script>
+
+
+
+
+
+}

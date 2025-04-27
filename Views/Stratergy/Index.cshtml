@@ -1,0 +1,486 @@
+﻿@model IEnumerable<NIA_CRM.Models.Strategy>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+
+<div class="d-flex flex-row align-items-center justify-content-between mb-4">
+    <h1 class="mb-0" id="contacts-title">Strategies</h1>
+</div>
+<partial name="_ErrorMessage" />
+<partial name="_SuccessMessage" />
+
+
+
+@if (User.IsInRole("Admin"))
+{
+    <form asp-action="ImportData" method="post" enctype="multipart/form-data">
+        <!-- Help Icon for import Instructions -->
+        <i class="fa fa-question-circle help-icon ms-2" onclick="toggleVisibility('importHelp')" title="Click for import instructions"></i>
+        <div class="d-flex align-items-center" style="padding-bottom: 10px;">
+
+            <button type="submit" class="btn btn-dark me-2" style="min-width: 150px;">
+                <i class="fa fa-file-import"></i> Import Excel
+            </button>
+            <input type="file" name="file" class="form-control me-2" required />
+        </div>
+    </form>
+
+    <!-- Import Help Info -->
+    <div id="importHelp" class="info-box" style="display: none; border: 1px solid #ccc; padding: 10px; margin: 10px; position: relative;">
+        <button class="close-btn" onclick="toggleVisibility('importHelp')">×</button>
+        <h5>Import Instructions</h5>
+        <p>
+            To import strategy details, upload an Excel file (.xlsx) with properly formatted data.
+            The first row of your file should contain the correct column headers to ensure a successful import.
+        </p>
+        <p>
+            Required fields include <strong>Strategy Name</strong>, <strong>Strategy Assignee</strong>,
+            <strong>Created Date</strong> (YYYY-MM-DD format), and <strong>Strategy Status</strong>.
+            Other fields such as <strong>Strategy Note</strong> and <strong>Strategy Term</strong> should be correctly formatted.
+        </p>
+        <p>
+            Ensure the following column structure:
+            <ul>
+                <li><strong>Column 1:</strong> Strategy Name (Text, Required)</li>
+                <li><strong>Column 2:</strong> Strategy Assignee (Text, Required)</li>
+                <li><strong>Column 3:</strong> Created Date (Date, YYYY-MM-DD format, Required)</li>
+                <li><strong>Column 4:</strong> Strategy Status (Text, e.g., Active, Pending, Completed, Required)</li>
+                <li><strong>Column 5:</strong> Strategy Note (Text, Optional comments or details)</li>
+                <li><strong>Column 6:</strong> Strategy Term (Text, e.g., Short-Term, Long-Term)</li>
+            </ul>
+        </p>
+        <a href="/files/StratergyImportSample.xlsx" download style="font-weight:bold;">
+            Download Sample Excel File for Import
+        </a>
+        <p>
+            Ensure all required data is included and headers match exactly, otherwise, the import may fail.
+        </p>
+    </div>
+}
+
+
+<!-- Modal for Exporting Strategies -->
+<div class="modal fade" id="exportStrategiesModal" tabindex="-1" aria-labelledby="exportStrategiesModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exportStrategiesModalLabel">Select Fields to Export</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="exportStrategiesForm" asp-action="ExportSelectedStrategiesFields" method="post">
+                    <!-- Hidden fields for the filters -->
+                    <input type="hidden" name="SearchString" id="hiddenSearchString" value="@ViewData["SearchString"]" />
+                    <input type="hidden" name="DateFilter" id="hiddenDateFilter" value="@ViewData["DateFilter"]" />
+                    <input type="hidden" name="StrategyAssigneeFilter" id="hiddenStrategyAssigneeFilter" value="@ViewData["StrategyAssigneeFilter"]" />
+                    <input type="hidden" name="StrategyTermFilter" id="hiddenStrategyTermFilter" value="@ViewData["StrategyTermFilter"]" />
+                    <input type="hidden" name="StrategyStatusFilter" id="hiddenStrategyStatusFilter" value="@ViewData["StrategyStatusFilter"]" />
+
+                    <div class="form-check mb-3">
+                        <input type="checkbox" class="form-check-input" id="includeFilters" name="applyFilters" value="true" checked>
+                        <label class="form-check-label" for="includeFilters">Include current filters in export</label>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <input type="checkbox" name="selectedFields" value="StrategyName" checked> Strategy Name
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" name="selectedFields" value="StrategyAssignee" checked> Assignee
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" name="selectedFields" value="StrategyNote" checked> Strategy Note
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" name="selectedFields" value="CreatedDate" checked> Created Date
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" name="selectedFields" value="StrategyTerm" checked> Term
+                        </div>
+                        <div class="col-md-6">
+                            <input type="checkbox" name="selectedFields" value="StrategyStatus" checked> Status
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="exportStrategiesForm" class="btn btn-dark" data-bs-dismiss="modal">
+                    <i class="fa fa-file-excel text-white"></i> Export
+                </button>
+                <!-- Help Icon for Export Instructions -->
+                <i class="fa fa-question-circle help-icon ms-2" onclick="toggleVisibility('exportHelp')" title="Click for export instructions"></i>
+            </div>
+
+            <!-- Export Help Info -->
+            <div id="exportHelp" class="info-box" style="display: none; border: 1px solid #ccc; padding: 10px; margin: 10px; position: relative;">
+                <button class="close-btn" onclick="toggleVisibility('exportHelp')">×</button>
+                <h5>Export Instructions</h5>
+                <p>
+                    Select the fields you wish to export by checking the corresponding boxes.
+                    If you have applied filters, you can choose to export the filtered data. Then click the "Export" button to download the file.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<form asp-action="Index" method="get" aria-labelledby="contacts-title">
+    <input type="hidden" name="sortDirection" value="@ViewData["sortDirection"]" />
+    <input type="hidden" name="sortField" value="@ViewData["sortField"]" />
+    @{
+        var sortField = ViewData["sortField"]?.ToString();
+        var sortDirection = ViewData["sortDirection"]?.ToString();
+    }
+
+    <!-- Filter/Search Section -->
+    <div class="m-auto flex-grow-1">
+        <div class="form-horizontal mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex flex-wrap">
+
+                    <button class="btn btn-dark @ViewData["Filtering"] me-2 mb-2" type="button" id="filterToggle" data-bs-toggle="collapse" data-bs-target="#collapseFilter" aria-expanded="false" aria-controls="collapseFilter">
+                        Filter/Search @ViewData["numberFilters"]
+                    </button>
+
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <!-- Export Button to Open Strategy Modal -->
+                        <button type="button" class="btn btn-dark me-2 mb-2" data-bs-toggle="modal" data-bs-target="#exportStrategiesModal">
+                            <i class="fa fa-file-excel text-white"></i> Export To Excel
+                        </button>
+                    }
+                </div>
+                @if (User.IsInRole("Admin"))
+                {
+                    <a asp-action="Create" class="btn btn-primary" aria-label="Add a new event">+ Add Strategy</a>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter clear badges -->
+    @if (ViewData["numberFilters"] != null && ViewData["numberFilters"].ToString() != "0 Filters Applied")
+    {
+        <div class="filters-container mt-2">
+            @if (!string.IsNullOrEmpty(ViewData["SearchString"] as string))
+            {
+                <span class="custom-filter-badge me-2">
+                    Member Name: @ViewData["SearchString"]
+                    <button type="button" class="ms-2 clear-btn" aria-label="Clear" onclick="clearFilter('SearchString')">x</button>
+                </span>
+            }
+            @if (ViewData["DateFilter"] != null)
+            {
+                <span class="custom-filter-badge me-2">
+                    Date: @Convert.ToDateTime(ViewData["DateFilter"]).ToString("yyyy-MM-dd")
+                    <button type="button" class="ms-2 clear-btn" aria-label="Clear" onclick="clearFilter('DateFilter')">x</button>
+                </span>
+            }
+            @if (!string.IsNullOrEmpty(ViewData["StrategyAssigneeFilter"] as string))
+            {
+                <span class="custom-filter-badge me-2">
+                    Assignee: @ViewData["StrategyAssigneeFilter"]
+                    <button type="button" class="ms-2 clear-btn" aria-label="Clear" onclick="clearFilter('StrategyAssigneeFilter')">x</button>
+                </span>
+            }
+            @if (ViewData["StrategyTermFilter"] != null)
+            {
+                <span class="custom-filter-badge me-2">
+                    Strategy Term: @ViewData["StrategyTermFilter"]
+                    <button type="button" class="ms-2 clear-btn" aria-label="Clear" onclick="clearFilter('StrategyTermFilter')">x</button>
+                </span>
+            }
+
+            @if (ViewData["StrategyStatusFilter"] != null)
+            {
+                <span class="custom-filter-badge me-2">
+                    Strategy Status: @ViewData["StrategyStatusFilter"]
+                    <button type="button" class="ms-2 clear-btn" aria-label="Clear" onclick="clearFilter('StrategyStatusFilter')">x</button>
+                </span>
+            }
+
+
+        </div>
+    }
+
+
+
+    <div class="collapse @ViewData["ShowFilter"] mt-2" id="collapseFilter">
+        <div class="card card-body bg-light">
+            <div class="row">
+                <div class="form-group col-md-3">
+                    <label for="search-name" class="control-label">Search By Strategy Name:</label>
+                    @Html.TextBox("SearchString", null, new { @class = "form-control", id = "search-name", placeholder = "Enter Strategy Name" })
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="StrategyAssigneeFilter">Search By Assignee:</label>
+                    @Html.TextBox("StrategyAssigneeFilter", null, new { @class = "form-control", id = "StrategyAssigneeFilter", placeholder = "Enter Assignee Name" })
+                </div>
+
+                <div class="form-group col-md-3">
+                    <label>Filter by Strategy Term:</label>
+                    @Html.DropDownList("StrategyTermFilter", new SelectList(Enum.GetValues(typeof(StrategyTerm))), "All Strategy Terms", new { @class = "form-control" })
+                </div>
+                <div class="form-group col-md-3">
+                    <label>Filter by Strategy Status:</label>
+                    @Html.DropDownList("StrategyStatusFilter", new SelectList(Enum.GetValues(typeof(StrategyStatus))), "All Strategy Statuses", new { @class = "form-control" })
+                </div>
+
+
+                <div class="form-group col-md-3">
+                    <label for="filter-date" class="control-label">Filter by Create Date:</label>
+                    <input type="date" name="date" class="form-control" id="filter-date" value="@ViewData["DateFilter"]" />
+                </div>
+                <div class="form-group col-md-4 d-flex align-items-end mt-2">
+                    <input type="submit" name="actionButton" value="Apply Filters" class="btn btn-primary me-2" />
+                    <a asp-action="Index" class="btn btn-dark">Clear Filters</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center">
+        <label class="control-label">@ViewData["records"]</label>
+        <i class="fa fa-question-circle help-icon ms-2" onclick="toggleVisibility('prreviewHelp')" title="Click for preview panel instructions"></i>
+    </div>
+    <div id="prreviewHelp" class="info-box" style="display: none; border: 1px solid #ccc; padding: 10px; margin: 10px; position: relative;">
+        <button class="close-btn" onclick="toggleVisibility('importHelp')">×</button>
+        <h5>Preview Panel Instructions</h5>
+        <p>
+            By clicking on a record row, a side panel will appear with a preview of the record's details.
+            In the Preview panel, you can quickly review the record's information and perform various actions:
+            <br />
+            - Navigate to the Edit strategy page
+            <br />
+            - Delete the strategy <br />
+            Additionally, you can edit or add notes about the strategy directly in the Preview panel and save them instantly.
+        </p>
+    </div>
+
+    <table class="table table-bordered table-striped" id="event-table" aria-labelledby="strategies">
+        <caption class="sr-only">Strategy table showing filtered results</caption>
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col" class="table-head">
+                    @{
+
+                        var isCurrentSortField = sortField == "Strategy Name";
+                        var sortOrderIndicator = isCurrentSortField ? (sortDirection == "asc" ? "↑" : "↓") : "";
+                    }
+
+
+                    @if (isCurrentSortField)
+                    {
+                        <input type="submit" name="actionButton" value="Strategy Name" class="btn btn-link" aria-label="Sort by Strategy Name" />
+                        <span class="SortIndicator">@sortOrderIndicator</span>
+                    }
+                    else
+                    {
+                        <input type="submit" name="actionButton" value="Strategy Name" class="btn btn-link" aria-label="Sort by Strategy Name" />
+                    }
+                </th>
+
+                <th scope="col" class="table-head">
+                    @{
+                        var isAsigneeCodeSortField = sortField == "Strategy Assignee";
+                        var AsigneeCodeSortIndicator = isAsigneeCodeSortField ? (sortDirection == "asc" ? "↑" : "↓") : "";
+                    }
+                    @if (isAsigneeCodeSortField)
+                    {
+                        <input type="submit" name="actionButton" value="Strategy Assignee" class="btn btn-link" aria-label="Sort by Strategy Assignee" />
+                        <span class="SortIndicator">@AsigneeCodeSortIndicator</span>
+                    }
+                    else
+                    {
+                        <input type="submit" name="actionButton" value="Strategy Assignee" class="btn btn-link" aria-label="Sort by Strategy Assignee" />
+                    }
+                </th>
+                <th scope="col" class="table-head">
+                    @Html.DisplayNameFor(model => model.StrategyNote)
+                </th>
+                <th scope="col" class="table-head">
+                    @{
+                        var isDateSortField = sortField == "Created Date";
+                        var DateSortIndicator = isDateSortField ? (sortDirection == "asc" ? "↑" : "↓") : "";
+                    }
+                    @if (isDateSortField)
+                    {
+                        <input type="submit" name="actionButton" value="Created Date" class="btn btn-link" aria-label="Sort by Created Date" />
+                        <span class="SortIndicator">@DateSortIndicator</span>
+                    }
+                    else
+                    {
+                        <input type="submit" name="actionButton" value="Created Date" class="btn btn-link" aria-label="Sort by Created Date" />
+                    }
+                </th>
+                <th scope="col" class="table-head">
+                    @{
+                        var isTermSortField = sortField == "Startegy Term";
+                        var TermSortIndicator = isTermSortField ? (sortDirection == "asc" ? "↑" : "↓") : "";
+                    }
+                    @if (isTermSortField)
+                    {
+                        <input type="submit" name="actionButton" value="Startegy Term" class="btn btn-link" aria-label="Sort by Startegy Term" />
+                        <span class="SortIndicator">@TermSortIndicator</span>
+                    }
+                    else
+                    {
+                        <input type="submit" name="actionButton" value="Startegy Term" class="btn btn-link" aria-label="Sort by Startegy Term" />
+                    }
+                </th>
+                <th scope="col" class="table-head">
+                    @{
+                        var isStatusCodeSortField = sortField == "Strategy Status";
+                        var StatusCodeSortIndicator = isStatusCodeSortField ? (sortDirection == "asc" ? "↑" : "↓") : "";
+                    }
+                    @if (isStatusCodeSortField)
+                    {
+                        <input type="submit" name="actionButton" value="Strategy Status" class="btn btn-link" aria-label="Sort by Strategy Status" />
+                        <span class="SortIndicator">@StatusCodeSortIndicator</span>
+                    }
+                    else
+                    {
+                        <input type="submit" name="actionButton" value="Strategy Status" class="btn btn-link" aria-label="Sort by Strategy Status" />
+                    }
+                </th>
+                @* <th scope="col" class="table-head"></th> *@
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr class="clickable-row" data-id="@item.ID" title="Click on row to get preview">
+                    <td>
+                        @Html.DisplayFor(modelItem => item.StrategyName)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.StrategyAssignee)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.StrategyNote)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.CreatedDate)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.StrategyTerm)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.StrategyStatus)
+
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <partial name="_PagingNavBar" />
+
+</form>
+
+<div id="previewContainer" class="preview-content hidden"></div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            // Initially hide the preview content
+            $('#previewContainer').addClass('hidden');
+
+            // Handle click event on rows with the "clickable-row" class
+            $(document).on('click', '.clickable-row', function () {
+                var contactId = $(this).data('id'); // Get the Contact ID from the row's data attribute
+
+                if (!contactId) {
+                    console.error('No contact ID found for this row.');
+                    return;
+                }
+
+                // Make an AJAX request to get the partial view for the selected contact
+                $.ajax({
+                    url: '/Stratergy/GetStratergyPreview', // Adjust the URL to match your routing
+                    type: 'GET',
+                    data: { id: contactId },
+                    success: function (result) {
+                        // Insert the result (partial view) into the preview container
+                        $('#previewContainer').html(result);
+                        $('#previewContainer').removeClass('hidden').addClass('visible'); // Show the preview
+
+                        // Assign the close event to the button inside the loaded preview
+                        $('#previewContainer').find('input[name="btnClose"]').on('click', function () {
+                            $('#previewContainer').removeClass('visible').addClass('hidden');
+                        });
+
+
+
+                        // Assign the save event to the save button inside the loaded preview
+                        $('#previewContainer').find('#saveNoteBtn').on('click', function (e) {
+                            e.preventDefault(); // Prevent default button behavior
+
+                            var memberId = $("#StratergyId").val();
+                            var note = $("#Note").val();
+
+                            if (!memberId || !note.trim()) {
+                                $("#responseMessage").text("Note cannot be empty!").addClass("text-danger").removeClass("text-success").show();
+                                return;
+                            }
+
+                            $.ajax({
+                                type: "POST",
+                                url: "/Stratergy/SaveStratergyNote",
+                                data: { id: memberId, note: note },
+                                dataType: "json",
+                                success: function (response) {
+                                    if (response.success) {
+                                        $("#responseMessage").text(response.message).addClass("text-success").removeClass("text-danger").show();
+                                    } else {
+                                        $("#responseMessage").text(response.message).addClass("text-danger").removeClass("text-success").show();
+                                    }
+                                },
+                                error: function () {
+                                    $("#responseMessage").text("An unexpected error occurred.").addClass("text-danger").removeClass("text-success").show();
+                                }
+                            });
+                        });
+
+
+                    },
+                    error: function () {
+                        alert('An error occurred while loading the preview.');
+                    }
+                });
+            });
+
+            // Window click listener to collapse preview when clicked outside
+            $(window).click(function (event) {
+                if (!$(event.target).closest('#previewContainer, .clickable-row').length) {
+                    $('#previewContainer').removeClass('visible').addClass('hidden');
+                }
+            });
+
+            // Prevent the preview container from closing when clicked inside
+            $('#previewContainer').click(function (event) {
+                event.stopPropagation(); // Stop the event from propagating to the window
+            });
+        });
+
+        function clearFilter(filterName) {
+            // Get the current URL
+            var url = window.location.href.split('?')[0]; // Current URL without query string
+
+            // Get the query parameters from the URL
+            var params = new URLSearchParams(window.location.search);
+            params.delete(filterName);
+
+            // Reload the page with the updated query string (filters removed)
+            window.location.href = url + '?' + params.toString();
+        }
+    </script>
+
+}

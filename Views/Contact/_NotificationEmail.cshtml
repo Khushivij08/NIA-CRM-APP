@@ -1,0 +1,48 @@
+﻿@model NIA_CRM.Models.EmailModal
+
+
+<div class="row">
+    <div class="col-md-12">
+        <form asp-action="Notification" asp-controller="Contact" method="post" id="createNotificationForm">
+            <input type="hidden" id="selectedContactIds" name="selectedContactIds" />
+            <div class="text-danger validation-summary-errors">
+                <ul id="ErrorList"></ul>
+            </div>
+            <div class="card card-body bg-light text-black">
+                <div class="row">
+                    <!-- Email Type -->
+                   @*  <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="EmailAddress" class="control-label"></label> (required)
+                            <input asp-for="EmailAddress" class="form-control" />
+                            <span asp-validation-for="EmailAddress" class="text-danger"></span>
+                        </div>
+                    </div> *@
+                    <!-- Subject -->
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label asp-for="Subject" class="control-label"></label> (required)
+                            <input asp-for="Subject" id="emailSubject" class="form-control" />
+                            <span asp-validation-for="Subject" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Body (Textarea) -->
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="form-group">
+                            <label asp-for="Body" class="control-label"></label> (required)
+                            <textarea asp-for="Body" id="emailBody" class="form-control w-100" rows="4"></textarea>
+                            <span asp-validation-for="Body" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="position-bottom-left">
+                <button type="submit" id="submitNotificationForm" class="btn btn-outline-dark">Send Email</button>
+            </div>
+        </form>
+    </div>
+</div>

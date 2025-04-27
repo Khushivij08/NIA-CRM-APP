@@ -1,0 +1,397 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - NIA CRM</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/responsive.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/navbar.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/charts.css" asp-append-version="true" />
+
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gridstack/dist/gridstack.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
+
+
+
+
+    <!-- Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    @await RenderSectionAsync("Head", required: false)
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+
+</head>
+<body>
+    <div class="container-fluid main-container">
+        <!-- Sidebar -->
+        <nav id="sidebarMenu" class="sidebar">
+            <div>
+                <button id="toggleSidebar" class="btn btn-black">☰</button>
+                <div class="logo-container">
+                    <a href="~/">
+                        <img src="~/images/NIA_Logo.png" alt="Logo" class="logo" />
+                    </a>
+                </div>
+            </div>
+            <div class="position-sticky p-3 d-flex flex-column" style="min-height: 93%;">
+                <div>
+                    <ul>
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <!-- Home Menu Item -->
+                            <li class="nav-item" role="menuitem">
+                                <a class="nav-link text-dark" href="@Url.Action("Index", "Home")" aria-label="Go to Dashboard page" title="Dashboard">
+                                    <span class="icon" aria-hidden="true"><i class="fas fa-home"></i></span>
+                                    <span class="text-white ms-2">Dashboard</span>
+                                </a>
+                            </li>
+                            <!-- Members Menu Item -->
+                            <li class="nav-item" role="menuitem">
+                                <a class="nav-link text-dark" href="@Url.Action("Index", "Member")" aria-label="Go to members" title="Add Member">
+                                    <span class="icon" aria-hidden="true"><i class="fas fa-user-friends"></i></span>
+                                    <span class="text-white ms-2">Members</span>
+                                </a>
+                            </li>
+                            
+
+                            <!-- Contacts Menu Item -->
+                            <li class="nav-item" role="menuitem">
+                                <a class="nav-link text-dark" href="@Url.Action("Index", "Contact")" aria-label="View Contacts" title="Contacts">
+                                    <span class="icon" aria-hidden="true"><i class="fas fa-address-book"></i></span>
+                                    <span class="text-white ms-2">Contacts</span>
+                                </a>
+                            </li>
+
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <!-- Email Patterns Menu Item -->
+                                <li class="nav-item" role="menuitem">
+                                    <a class="nav-link text-dark" href="@Url.Action("Index", "ProductionEmail")" aria-label="Access Production Email" title="Email">
+                                        <span class="icon" aria-hidden="true"><i class="fas fa-envelope"></i></span>
+                                        <span class="text-white ms-2">Email Patterns</span>
+                                    </a>
+                                </li>
+                            }
+                            <!-- Collapsible Archived Menu Item -->
+                            <li class="nav-item" role="menuitem">
+                                <a class="nav-link text-dark d-flex justify-content-between align-items-center"
+                                   data-bs-toggle="collapse" href="#archivedCollapse" aria-expanded="false" aria-controls="archivedCollapse" title="Archived">
+                                    <div class="d-flex align-items-center">
+                                        <span class="icon" aria-hidden="true"><i class="fas fa-ban"></i></span>
+                                        <span class="text-white ms-2">Archived</span>
+                                    </div>
+                                    <span><i class="fas fa-chevron-down text-white" id="archivedArrow"></i></span>
+                                </a>
+                                <div id="archivedCollapse" class="collapse">
+                                    <ul class="list-unstyled">
+                                        <li>
+                                            <a class="nav-link text-dark" href="@Url.Action("Index", "ContactCancellation")">
+                                                <span class="icon" aria-hidden="true"><i class="fas fa-address-book"></i></span>
+                                                <span class="text-white ms-2">Archived Contacts</span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="nav-link text-dark" href="@Url.Action("Index", "Cancellation")">
+                                                <span class="icon" aria-hidden="true"><i class="fas fa-user-plus"></i></span>
+                                                <span class="text-white ms-2">Archived Members</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </li>
+
+
+
+                            <!-- Collapsible Notes Menu Item -->
+                            <li class="nav-item" role="menuitem">
+                                <a class="nav-link text-dark d-flex justify-content-between align-items-center"
+                                   data-bs-toggle="collapse" href="#notesCollapse" aria-expanded="false" aria-controls="notesCollapse" title="Notes">
+                                    <div class="d-flex align-items-center">
+                                        <span class="icon" aria-hidden="true"><i class="fas fa-pen"></i></span>
+                                        <span class="text-white ms-2">Notes</span>
+                                    </div>
+                                    <span><i class="fas fa-chevron-down text-white" id="notesArrow"></i></span>
+                                </a>
+                                <div id="notesCollapse" class="collapse">
+                                    <ul class="list-unstyled">
+                                        <li>
+                                            <a class="nav-link text-dark" href="@Url.Action("Index", "Opportunity")">
+                                                <span class="icon" aria-hidden="true"><i class="fas fa-briefcase"></i></span>
+                                                <span class="text-white ms-2">Opportunities</span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="nav-link text-dark" href="@Url.Action("Index", "Stratergy")">
+                                                <span class="icon" aria-hidden="true"><i class="fas fa-lightbulb"></i></span>
+                                                <span class="text-white ms-2">Strategies</span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="nav-link text-dark" href="@Url.Action("Index", "AnnualAction")">
+                                                <span class="icon" aria-hidden="true"><i class="fas fa-calendar-check"></i></span>
+                                                <span class="text-white ms-2">Annual Actions</span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="nav-link text-dark" href="@Url.Action("Index", "MEvent")">
+                                                <span class="icon" aria-hidden="true"><i class="fas fa-calendar-alt"></i></span>
+                                                <span class="text-white ms-2">Events</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </li>
+
+
+                            @* <li>
+
+                            <a class="nav-link text-dark" href="https://mail.google.com/" target="_blank" title="Open Gmail Inbox Directly">
+                                <span class="icon" aria-hidden="true"><i class="fas fa-envelope"></i></span>
+                                <span class="text-white ms-2">Open Gmail Inbox</span>
+                            </a>
+
+                        </li> *@
+
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <!-- User Roles Collapsible Menu -->
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark d-flex justify-content-between align-items-center"
+                                       data-bs-toggle="collapse" href="#userRolesMenu" role="button"
+                                       aria-expanded="false" aria-controls="userRolesMenu" title="User Roles">
+                                        <div>
+                                            <i class="icon fas fa-key"></i>
+                                            <span class="text-white ms-2">User Roles</span>
+                                        </div>
+                                        <i class="fas fa-chevron-down text-white" id="userArrow"></i>
+                                    </a>
+
+                                <div class="collapse" id="userRolesMenu">
+                                    <ul class="nav flex-column">
+                                        <li class="nav-item">
+                                            <a class="nav-link text-white" href="@Url.Action("Index", "UserRole")">
+                                                <span class="icon" aria-hidden="true">
+                                                    <i class="fas fa-user-cog"></i> <!-- Icon for User Roles -->
+                                                </span>
+                                                    <span class="text-white ms-2">Manage User Roles</span>
+                                            </a>
+                                        </li>
+
+                                        <li class="nav-item">
+                                            <a class="nav-link text-white" asp-area="Identity" asp-page="/Account/Register">
+                                                <span class="icon" aria-hidden="true">
+                                                    <i class="fas fa-user-plus"></i> <!-- Icon for Register User -->
+                                                </span>
+                                                    <span class="text-white ms-2">Register User</span>
+                                            </a>
+                                        </li>
+                                        @* Add more items here if needed *@
+                                    </ul>
+                                </div>
+
+                                </li>
+
+
+
+                                <!-- NAICS Codes Menu Item -->
+                                <li class="nav-item" role="menuitem">
+                                    <a class="nav-link text-dark" href="@Url.Action("Index", "NAICSCodes")" aria-label="Naics Codes" title="Naics Codes">
+                                        <span class="icon" aria-hidden="true"><i class="fas fa-search"></i></span>
+                                        <span class="text-white ms-2">NAICS Codes</span>
+                                    </a>
+                                </li>
+                            }
+                        }
+                    </ul>
+
+                    <button id="theme-toggle" class="theme-toggle-btn" data-bs-toggle="tooltip" title="Toggle Dark Mode">
+                        <i class="fas fa-moon"></i>
+                        <span class="theme-toggle-text">Dark Mode</span>
+                    </button>
+                </div>
+
+            <div class="mt-auto position-sticky">
+                <partial name="_LoginPartial" />
+            </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div id="mainContent" class="main-content">
+            <main role="main" class="pb-3">
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-top footer text-center" id="footer-scroll">
+        <div class="container mt-2">
+            <p>&copy; 2025 - NIA CRM</p>
+            <p>
+                <input type="button" value="Back To Top" aria-label="Go back to top of the page" id="btnBackToTop" tabindex="19">
+            </p>
+        </div>
+    </footer>
+
+    @* <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script> *@
+
+
+    @await Html.PartialAsync("_SessionTimeoutModal")
+    <script src="~/js/session-timeout.js"></script>
+
+
+    <!-- Scripts -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/PhoneNumber.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.3/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.12/jquery.validate.unobtrusive.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.querySelector('.main-content');
+            const toggleButton = document.querySelector('#toggleSidebar');
+
+            // Check the saved sidebar state from localStorage
+            let sidebarState = localStorage.getItem('sidebarState');
+
+            // If no sidebar state is saved (first visit), default to "open"
+            if (!sidebarState) {
+                sidebarState = 'open';
+                localStorage.setItem('sidebarState', 'open'); // Save the initial state
+            }
+
+            // Apply the saved state immediately without triggering transitions
+            if (sidebarState === 'open') {
+                sidebar.classList.add('show');
+                mainContent.classList.remove('sidebar-collapsed');
+                toggleButton.innerHTML = '<i class="fas fa-arrow-left"></i>'; // For left arrow
+            } else {
+                sidebar.classList.remove('show');
+                mainContent.classList.add('sidebar-collapsed');
+                toggleButton.innerHTML = '<i class="fas fa-bars"></i>'; // For hamburger menu
+            }
+
+            // Prevent transition effects during page load
+            sidebar.style.transition = 'none';
+            mainContent.style.transition = 'none';
+
+            // Re-enable transitions after a short delay
+            setTimeout(() => {
+                sidebar.style.transition = '';
+                mainContent.style.transition = '';
+            }, 0);
+
+            // Add event listener to toggle the sidebar
+            toggleButton.addEventListener('click', function () {
+                sidebar.classList.toggle('show');
+                mainContent.classList.toggle('sidebar-collapsed');
+
+                // Save the new state to localStorage
+                if (sidebar.classList.contains('show')) {
+                    localStorage.setItem('sidebarState', 'open');
+                    toggleButton.innerHTML = '<i class="fas fa-arrow-left"></i>'; // For left arrow
+                } else {
+                    localStorage.setItem('sidebarState', 'closed');
+                    toggleButton.innerHTML = '<i class="fas fa-bars"></i>'; // For hamburger menu
+                }
+            });
+
+            // Handle the arrow direction change for Archived dropdown
+            $('#archivedCollapse').on('show.bs.collapse', function () {
+                $('#archivedArrow').removeClass('fa-chevron-down').addClass('fa-chevron-up');
+            });
+
+            $('#archivedCollapse').on('hidden.bs.collapse', function () {
+                $('#archivedArrow').removeClass('fa-chevron-up').addClass('fa-chevron-down');
+            });
+
+            // Handle the arrow direction change for Notes dropdown
+            $('#notesCollapse').on('show.bs.collapse', function () {
+                $('#notesArrow').removeClass('fa-chevron-down').addClass('fa-chevron-up');
+            });
+
+            $('#notesCollapse').on('hidden.bs.collapse', function () {
+                $('#notesArrow').removeClass('fa-chevron-up').addClass('fa-chevron-down');
+            });
+            $('#userRolesMenu').on('show.bs.collapse', function () {
+                $('#userArrow').removeClass('fa-chevron-down').addClass('fa-chevron-up');
+            });
+
+            $('#userRolesMenu').on('hidden.bs.collapse', function () {
+                $('#userArrow').removeClass('fa-chevron-up').addClass('fa-chevron-down');
+            });
+        });
+    </script>
+    <script type="text/javascript">
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const toggleBtn = document.getElementById("theme-toggle");
+            const icon = toggleBtn.querySelector("i");
+            const text = toggleBtn.querySelector(".theme-toggle-text");
+            const body = document.body;
+
+            function setTheme(theme) {
+                if (theme === "dark") {
+                    body.classList.add("dark-mode");
+                    icon.classList.replace("fa-moon", "fa-sun");
+                    text.textContent = "Light Mode";
+                } else {
+                    body.classList.remove("dark-mode");
+                    icon.classList.replace("fa-sun", "fa-moon");
+                    text.textContent = "Dark Mode";
+                }
+                localStorage.setItem("theme", theme);
+            }
+
+            const savedTheme = localStorage.getItem("theme") || "light";
+            setTheme(savedTheme);
+
+            toggleBtn.addEventListener("click", () => {
+                const currentTheme = body.classList.contains("dark-mode") ? "dark" : "light";
+                setTheme(currentTheme === "dark" ? "light" : "dark");
+            });
+        });
+    </script>
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let currentTheme = localStorage.getItem("theme") || "light";
+            if (currentTheme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+
+            document.getElementById("theme-toggle").addEventListener("click", function () {
+                if (currentTheme === "dark") {
+                    document.documentElement.removeAttribute("data-theme");
+                    localStorage.setItem("theme", "light");
+                    currentTheme = "light";
+                } else {
+                    document.documentElement.setAttribute("data-theme", "dark");
+                    localStorage.setItem("theme", "dark");
+                    currentTheme = "dark";
+                }
+            });
+        });
+    </script>
+
+
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,20 @@
+﻿<div class="modal fade" id="sessionWarningModal" tabindex="-1" aria-labelledby="sessionTimeoutLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title" id="sessionTimeoutLabel">Session Expiring</h5>
+            </div>
+            <div class="modal-body">
+                You have been inactive for a while. Do you want to continue your session?
+                <p class="mt-2 text-danger"><strong>Logging out in <span id="sessionCountdown">30</span> seconds...</strong></p>
+            </div>
+            <div class="modal-footer">
+                <input type="button" id="continueSessionBtn" class="btn btn-primary" value="Continue Session" />
+                <input type="button" id="logoutBtn" class="btn btn-danger" value="Logout" />
+
+                @* <button  onclick="stayLoggedIn()"></button> *@
+                @* <a href="/Identity/Account/Login" class="btn btn-danger">Logout</a> *@
+            </div>
+        </div>
+    </div>
+</div>

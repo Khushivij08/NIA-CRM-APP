@@ -1,0 +1,249 @@
+﻿@model IEnumerable<NIA_CRM.Models.Cancellation>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<partial name="_Notification" />
+
+<div class="d-flex flex-row align-items-center justify-content-between mb-4">
+    <h1 id="Cancellation-title">Archived Members</h1>
+</div>
+
+<form asp-action="Index" method="get" aria-labelledby="contacts-title">
+    <input type="hidden" name="sortDirection" value="@ViewData["sortDirection"]" />
+    <input type="hidden" name="sortField" value="@ViewData["sortField"]" />
+    @{
+        var sortField = ViewData["sortField"]?.ToString();
+        var sortDirection = ViewData["sortDirection"]?.ToString();
+    }
+
+    <div class="form-horizontal mb-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <button class="btn btn-dark @ViewData["Filtering"]"
+                    type="button"
+                    id="filterToggle"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#collapseFilter"
+                    aria-expanded="false"
+                    aria-controls="collapseFilter">
+                Filter/Search @ViewData["numberFilters"]
+            </button>
+        </div>
+
+        @if (ViewData["numberFilters"] != null && ViewData["numberFilters"].ToString() != "0 Filters Applied")
+        {
+            <div class="filters-container mt-2">
+                @if (!string.IsNullOrEmpty(ViewData["SearchString"] as string))
+                {
+                    <span class="custom-filter-badge me-2">
+                        Member Name: @ViewData["SearchString"]
+                        <button type="button" class="ms-2 clear-btn" aria-label="Clear" onclick="clearFilter('SearchString')">x</button>
+                    </span>
+                }
+                @if (ViewData["MembersFilter"] != null)
+                {
+                    <span class="custom-filter-badge me-2">
+                        Members: @ViewData["MembersFilter"]
+                        <button type="button" class="ms-2 clear-btn" aria-label="Clear" onclick="clearFilter('Members')">x</button>
+                    </span>
+                }
+                @if (ViewData["cancelledFilter"] != null)
+                {
+                    <span class="custom-filter-badge me-2">
+                        cancelled: @ViewData["cancelledFilter"]
+                        <button type="button" class="ms-2 clear-btn" aria-label="Clear" onclick="clearFilter('cancelled')">x</button>
+                    </span>
+                }
+
+            </div>
+
+
+        }
+
+        <div class="collapse @ViewData["ShowFilter"] mt-2" id="collapseFilter">
+            <div class="card card-body bg-light" role="region" aria-labelledby="filter-section-title">
+                <h2 id="filter-section-title" class="sr-only">Filter and Search Options</h2>
+                <div class="row">
+                    <div class="form-group col-md-4">
+                        <label for="SearchString" class="control-label">Search By Member:</label>
+                        @Html.TextBox("SearchString", null, new { @class = "form-control", placeholder = "Enter Member..." })
+                        <span id="search-help" class="sr-only">Type a member's name to search.</span>
+                    </div>
+
+                    <div class="form-group col-md-4">
+                        <label for="Members" class="control-label">Filter by Industry:</label>
+                        @Html.DropDownList("Members", null, "All Members", htmlAttributes: new { @class = "form-control" })
+                        <span id="industry-help" class="sr-only">Select an industry to filter members by.</span>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <label for="cancelled" class="control-label">Only cancelled:</label>
+                        @Html.CheckBox("cancelled", htmlAttributes: new { @class = "form-check-input", id = "cancelled" })
+                        <span id="industry-help" class="sr-only">Select Membership Types to filter members by.</span>
+                    </div>
+
+                    <div class="form-group col-md-4 d-flex align-items-end mt-2">
+                        <input type="submit" name="actionButton" value="Apply Filters" class="btn btn-primary me-2" />
+                        <a asp-action="Index" class="btn btn-dark">Clear Filters</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="d-flex justify-content-between align-items-center">
+        <label class="control-label">@ViewData["records"]</label>
+        <i class="fa fa-question-circle help-icon ms-2" onclick="toggleVisibility('prreviewHelp')" title="Click for preview panel instructions"></i>
+    </div>
+    <div id="prreviewHelp" class="info-box" style="display: none; border: 1px solid #ccc; padding: 10px; margin: 10px; position: relative;">
+        <button class="close-btn" onclick="toggleVisibility('importHelp')">×</button>
+        <h5>Preview Panel Instructions</h5>
+        <p>
+            By clicking on a record row, a side panel will appear with a preview of the record's details.
+            In the Preview panel, you can quickly review the record's information and perform various actions:
+            <br />
+            - Navigate to the Edit member page
+            <br />
+            - Navigate to the Edit archiving member details page
+            <br />
+            - Activate the member <br />
+            - View the full details page for this conatct and member it's assigned to <br />
+
+            Additionally, you can edit or add notes about the member directly in the Preview panel and save them instantly.
+        </p>
+    </div>
+    <table class="table table-bordered table-striped" id="cancellations-table" aria-label="Cancellations">
+        <caption class="sr-only">Table listing cancellations with their details</caption>
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col" class="table-head">
+                    @{
+
+                        var isCurrentSortField = sortField == "Member";
+                        var sortOrderIndicator = isCurrentSortField ? (sortDirection == "asc" ? "↑" : "↓") : "";
+                    }
+
+
+                    @if (isCurrentSortField)
+                    {
+                        <input type="submit" name="actionButton" value="Member" class="btn btn-link" aria-label="Sort by Member name" />
+                        <span class="SortIndicator">@sortOrderIndicator</span>
+                    }
+                    else
+                    {
+                        <input type="submit" name="actionButton" value="Member" class="btn btn-link" aria-label="Sort by Member name" />
+                    }
+                </th>
+
+
+                <th scope="col" class="table-head">
+                    @{
+
+                        var isDateSortField = sortField == "Date";
+                        var DateOrderIndicator = isDateSortField ? (sortDirection == "asc" ? "↑" : "↓") : "";
+                    }
+
+
+                    @if (isDateSortField)
+                    {
+                        <input type="submit" name="actionButton" value="Date" class="btn btn-link" aria-label="Sort by Date" />
+                        <span class="SortIndicator">@DateOrderIndicator</span>
+                    }
+                    else
+                    {
+                        <input type="submit" name="actionButton" value="Date" class="btn btn-link" aria-label="Sort by Date" />
+                    }
+                </th>
+                <th scope="col" class="table-head">Archiving Note</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr class="clickable-row" data-id="@item.ID" title="Click on row to get preview">
+                    <td>@Html.DisplayFor(modelItem => item.Member.MemberName)</td>
+
+                    <td>@Html.DisplayFor(modelItem => item.CancellationDate)</td>
+                    <td>@Html.DisplayFor(modelItem => item.CancellationNote)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <partial name="_PagingNavBar" />
+
+</form>
+<div id="previewContainer" class="preview-content hidden"></div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+               $(document).ready(function () {
+            // Initially hide the preview content
+            $('#previewContainer').addClass('hidden');
+
+            // Handle click event on rows with the "clickable-row" class
+            $(document).on('click', '.clickable-row', function () {
+                var contactId = $(this).data('id'); // Get the Contact ID from the row's data attribute
+
+                if (!contactId) {
+                    console.error('No contact ID found for this row.');
+                    return;
+                }
+
+                // Make an AJAX request to get the partial view for the selected contact
+                $.ajax({
+                    url: '/Cancellation/GetMemberPreview', // Adjust the URL to match your routing
+                    type: 'GET',
+                    data: { id: contactId },
+                    success: function (result) {
+                        // Insert the result (partial view) into the preview container
+                        $('#previewContainer').html(result);
+                        $('#previewContainer').removeClass('hidden').addClass('visible'); // Show the preview
+                        // Assign the close event to the button inside the loaded preview
+                        $('#previewContainer').find('input[name="btnClose"]').on('click', function () {
+                            $('#previewContainer').removeClass('visible').addClass('hidden');
+                        });
+                    },
+                    error: function () {
+                        alert('An error occurred while loading the preview.');
+                    }
+                });
+            });
+
+            // Window click listener to collapse preview when clicked outside
+            $(window).click(function (event) {
+                if (!$(event.target).closest('#previewContainer, .clickable-row').length) {
+                    $('#previewContainer').removeClass('visible').addClass('hidden');
+                }
+            });
+
+            // Prevent the preview container from closing when clicked inside
+            $('#previewContainer').click(function (event) {
+                event.stopPropagation(); // Stop the event from propagating to the window
+            });
+        });
+
+        function clearFilter(filterName){
+            // Get the current URL
+            var url = window.location.href.split('?')[0]; // Current URL without query string
+
+            // Get the query parameters from the URL
+            var params = new URLSearchParams(window.location.search);
+            params.delete(filterName)
+
+            // Reload the page with the updated query string (filters removed)
+            window.location.href = url + '?' + params.toString();
+
+        }
+
+    </script>
+    <script type="text/javascript">
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+    </script>
+
+
+
+    }

@@ -1,0 +1,21 @@
+﻿<!-- Tag Delete Modal -->
+<div class="modal fade" id="deleteTagModal" tabindex="-1" aria-labelledby="deleteTagModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteTagModalLabel">Delete Tag</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <select id="deleteTagSelect" class="form-control">
+                    <!-- Options will be populated by JS -->
+                </select>
+                <div id="deleteTagError" class="text-danger mt-2"></div> <!-- Error message will be displayed here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-danger" id="deleteTag">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>

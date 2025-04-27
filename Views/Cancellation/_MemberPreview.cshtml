@@ -1,0 +1,110 @@
+﻿@model NIA_CRM.Models.Member
+
+<div>
+
+    <div class="d-flex justify-content-between align-items-center px-2 mb-3">
+        <h3>Member Archive Preview</h3>
+        <input type="button" name="btnClose" value="X" id="btnClose" class="btn btn-danger" />
+    </div>
+
+    @{
+        if (Model.MemberThumbnail?.Content != null)
+        {
+            string imageBase64 = Convert.ToBase64String(Model.MemberThumbnail.Content);
+            string imageSrc = string.Format("data:" + Model.MemberThumbnail.MimeType + ";base64,{0}", imageBase64);
+            <img src="@imageSrc" alt="Profile Picture of @Model?.MemberName"
+                 title="Profile Picture of @Model?.MemberName" class="img-fluid rounded" />
+        }
+        else
+        {
+            <img src="images/blankProfile.jpg" alt="blank profile picture"
+                 title="blank profile picture" class="img-fluid rounded" style="margin-right: 5px !important;" />
+        }
+    }
+
+    <div class="card card-body bg-light text-black">
+        <div>
+            <dt>Member Name:</dt>
+            <dd class="col-sm-8">
+                @Html.DisplayFor(model => model.MemberName)
+            </dd>
+
+            <dt><strong>Address:</strong></dt>
+            @if (Model.Address != null)
+            {
+                <dd>
+                    @Model.Address.AddressLine1<br />
+                    @if (!string.IsNullOrEmpty(Model.Address.AddressLine2))
+                    {
+                        @Model.Address.AddressLine2
+                        <br />
+                    }
+                    @($"{Model.Address.City}, {Model.Address.StateProvince}, {Model.Address.PostalCode}")<br />
+                </dd>
+            }
+            else
+            {
+                <p>No addresses available.</p>
+            }
+
+            <dt class="col-sm-4">Membership Type:</dt>
+            <dd class="col-sm-8">
+                @if (Model.MemberMembershipTypes != null && Model.MemberMembershipTypes.Any())
+                {
+                    @foreach (var membership in Model.MemberMembershipTypes)
+                    {
+                        <p>@membership.MembershipType.TypeName</p>
+                    }
+                }
+                else
+                {
+                    <p>No membership type available.</p>
+                }
+            </dd>
+
+            <dt class="col-sm-4">Website:</dt>
+            <dd class="col-sm-8">
+                @if (!string.IsNullOrEmpty(Model.WebsiteUrl))
+                {
+                    <a href="@Model.WebsiteUrl" target="_blank" rel="noopener noreferrer">
+                        @Model.WebsiteUrl
+                    </a>
+                }
+                else
+                {
+                    <span>No website available</span>
+                }
+            </dd>
+
+
+            <dt class="col-sm-4">Join Date:</dt>
+            <dd class="col-sm-8">
+                @Html.DisplayFor(model => model.JoinDate)
+            </dd>
+
+            <dt class="col-sm-4">Time Since Joined:</dt>
+            <dd class="col-sm-8">
+                @Model.TimeSinceJoined
+            </dd>
+        </div>
+
+
+        @* <div class="mt-3">
+            <label for="memberNote"><strong>Additional Notes:</strong></label><br />
+            <textarea id="memberNote" name="memberNote" class="form-control" rows="4" placeholder="Add notes here..." data-id="@Model.ID"></textarea>
+            
+        </div> *@
+    </div>
+    <div class="sticky-buttons mt-3">
+        <div class="sticky-buttons-container">
+            @if (User.IsInRole("Admin"))
+            {
+                <a class="btn btn-primary" asp-action="Delete" asp-route-id="@Model.ID">Activate</a>
+                <a class="btn btn-dark" asp-controller="Member" asp-action="Edit" asp-route-id="@Model.ID">Edit Member</a>
+                <a class="btn btn-dark" asp-controller="Cancellation" asp-action="Edit" asp-route-id="@Model.ID">Edit Archiving</a>
+            }
+            <a class="btn btn-primary" asp-controller="Member" asp-action="Details" asp-route-id="@Model.ID">Details</a>
+        </div>
+    </div>
+</div>
+

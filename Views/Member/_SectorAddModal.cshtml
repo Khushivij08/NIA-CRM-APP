@@ -1,0 +1,17 @@
+﻿<!-- Sector Modal -->
+<div class="modal fade" id="sectorModal" tabindex="-1" role="dialog" aria-labelledby="sectorModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="sectorModalLabel">Add New Sector</h4>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+                @{
+                    var s = new Sector(); // Assuming Sector class exists
+                    <partial name="_SectorAdd" model="s" />
+                }
+            </div>
+        </div>
+    </div>
+</div>

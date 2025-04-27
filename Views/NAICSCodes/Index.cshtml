@@ -1,0 +1,44 @@
+﻿@model IEnumerable<NIA_CRM.Models.NAICSCode>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>NAICS Codes</h1>
+<partial name="_ErrorMessage" />
+
+<div class="d-flex align-items-center gap-2">
+    <a class="btn btn-primary" aria-label="Add a new NAICS code" asp-action="Create">Create New</a>
+</div>
+<div>
+    <label class="control-label">@ViewData["records"]</label>
+</div>
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col" class="table-head">
+                @Html.DisplayNameFor(model => model.Code)
+            </th>
+            <th scope="col" class="table-head">
+                @Html.DisplayNameFor(model => model.Description)
+            </th>
+            <th scope ="col" class="table-head">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Code)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Description)
+            </td>
+            <td>
+                    <a class="btn btn-light mb-2" asp-action="Edit" asp-route-id="@item.Id">Edit</a>
+                    <a class="btn btn-light mb-2" asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

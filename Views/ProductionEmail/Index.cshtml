@@ -1,0 +1,307 @@
+﻿@using NIA_CRM.Utilities
+@model IEnumerable<NIA_CRM.Models.ProductionEmail>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+
+<partial name="_NotificationModalPMail" />
+
+<div class="d-flex flex-row align-items-center justify-content-between mb-4">
+    <h1 class="mb-0" id="Email-title">Email Patterns</h1>
+
+</div>
+
+<form asp-action="Index" method="get" aria-labelledby="contacts-title">
+    <input type="hidden" name="sortDirection" value="@ViewData["sortDirection"]" />
+    <input type="hidden" name="sortField" value="@ViewData["sortField"]" />
+    @{
+        var sortField = ViewData["sortField"]?.ToString();
+        var sortDirection = ViewData["sortDirection"]?.ToString();
+    }
+
+    <!-- Filter/Search Section -->
+    <div class="m-auto flex-grow-1">
+        <div class="form-horizontal mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <button class="btn btn-dark @ViewData["Filtering"]"
+                        type="button"
+                        id="filterToggle"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#collapseFilter"
+                        aria-expanded="false"
+                        aria-controls="collapseFilter">
+                    Filter/Search @ViewData["numberFilters"]
+                </button>
+                @if (User.IsInRole("Admin"))
+                {
+                    <a asp-action="Create" class="btn btn-primary" aria-label="Add a new Email">+ Add Email</a>
+                }
+            </div>
+            @if (ViewData["numberFilters"] != null && ViewData["numberFilters"].ToString() != "0 Filters Applied")
+            {
+                <div class="filters-container mt-2">
+                    @if (ViewData["EmailTypeIDFilter"] != null)
+                    {
+                        <span class="custom-filter-badge me-2">
+                            Email Type: @ViewData["EmailTypeIDFilter"]
+                            <button type="button" class="ms-2 clear-btn" aria-label="Clear" onclick="clearFilter('EmailTypeID')">x</button>
+                        </span>
+                    }
+
+                </div>
+
+
+            }
+            <div class="collapse @ViewData["ShowFilter"] mt-2" id="collapseFilter">
+                <div class="card card-body bg-light">
+                    <div class="row">
+
+
+                        <div class="form-group col-md-3">
+                            <label for="filter-email" class="control-label">Filter By Email Type:</label>
+                            @Html.DropDownList("EmailTypeID", null, "All Email Types", htmlAttributes: new { @class = "form-control", id = "filter-email" })
+                        </div>
+
+
+                        <div class="form-group col-md-4 d-flex align-items-end mt-2">
+                            <input type="submit" name="actionButton" value="Apply Filters" class="btn btn-primary me-2" />
+                            <a asp-action="Index" class="btn btn-dark">Clear Filters</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div>
+            <label class="control-label">@ViewData["records"]</label>
+        </div>
+        <table class="table" aria-labelledby="table-title">
+            <caption id="table-title" class="sr-only">Email Records Table</caption>
+            <thead class="thead-dark">
+                <tr>
+
+
+                    <th scope="col" class="table-head">
+                        @{
+                            var isTemplateNameSortField = sortField == "Template Name";
+                            var templateNameSortIndicator = isTemplateNameSortField ? (sortDirection == "asc" ? "↑" : "↓") : "";
+                        }
+
+                        @if (isTemplateNameSortField)
+                        {
+                            <input type="submit" name="actionButton" value="Template Name" class="btn btn-link" aria-label="Sort by Template Name" />
+                            <span class="SortIndicator">@templateNameSortIndicator</span>
+                        }
+                        else
+                        {
+                            <input type="submit" name="actionButton" value="Template Name" class="btn btn-link" aria-label="Sort by Template Name" />
+                        }
+                    </th>
+
+
+                    <th scope="col" class="table-head">
+                        @{
+                            var isEmailTypeSortField = sortField == "Email Type";
+                            var emailTypeSortIndicator = isEmailTypeSortField ? (sortDirection == "asc" ? "↑" : "↓") : "";
+                        }
+
+
+                        @if (isEmailTypeSortField)
+                        {
+                            <input type="submit" name="actionButton" value="Email Type" class="btn btn-link" aria-label="Sort by Email Type" />
+                            <span class="SortIndicator">@emailTypeSortIndicator</span>
+                        }
+                        else
+                        {
+                            <input type="submit" name="actionButton" value="Email Type" class="btn btn-link" aria-label="Sort by Email Type" />
+                        }
+                    </th>
+
+                    <th scope="col" class="table-head">
+                        @{
+                            var isSubjectSortField = sortField == "Subject";
+                            var subjectSortIndicator = isSubjectSortField ? (sortDirection == "asc" ? "↑" : "↓") : "";
+                        }
+
+
+                        @if (isSubjectSortField)
+                        {
+                            <input type="submit" name="actionButton" value="Subject" class="btn btn-link" aria-label="Sort by Subject" />
+                            <span class="SortIndicator">@subjectSortIndicator</span>
+                        }
+                        else
+                        {
+                            <input type="submit" name="actionButton" value="Subject" class="btn btn-link" aria-label="Sort by Subject" />
+                        }
+                    </th>
+
+
+                    <th scope="col" class="table-head">
+                        @Html.DisplayNameFor(model => model.Body)
+                    </th>
+                    <th scope="col" class="table-head">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.TemplateName)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.EmailType)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Subject)
+                        </td>
+                        <td>
+                            @Html.Raw(TextHelper.TruncateHtmlText(item.Body, 25))
+                        </td>
+
+                        <td>
+                            <a class="btn btn-secondary mb-2" asp-action="Details" asp-route-id="@item.Id" aria-label="View details of email of type @item.EmailType with subject @item.Subject">Details</a>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <a class="btn btn-light mb-2" asp-action="Edit" asp-route-id="@item.Id" aria-label="Edit email of type @item.EmailType with subject @item.Subject">Edit</a>
+                                <a class="btn btn-light mb-2" asp-action="Delete" asp-route-id="@item.Id" aria-label="Delete email of type @item.EmailType with subject @item.Subject">Delete</a>
+                                <button type="button" class="btn btn-light mb-2" data-bs-toggle="modal" data-bs-target="#addNotificationModal" id="openNotificationModal" data-subject="@item.Subject"
+                                        data-body="@item.Body">
+                                    Send Email
+                                </button>
+
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <partial name="_PagingNavBar" />
+
+</form>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+
+    <script>
+
+
+        function clearFilter(filterName){
+            // Get the current URL
+            var url = window.location.href.split('?')[0]; // Current URL without query string
+
+            // Get the query parameters from the URL
+            var params = new URLSearchParams(window.location.search);
+            params.delete(filterName)
+
+            // Reload the page with the updated query string (filters removed)
+            window.location.href = url + '?' + params.toString();
+
+        }
+
+    </script>
+    <script type="text/javascript">
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+    </script>
+
+    <script type="text/javascript">
+        document.addEventListener("DOMContentLoaded", function () {
+
+            // Show modal and populate selected contact IDs, Subject, and Body
+            $('#addNotificationModal').on('show.bs.modal', function (event) {
+                console.log("Modal opened.");
+
+                // Get the button that triggered the modal
+                var button = $(event.relatedTarget);  // This refers to the button clicked
+                var subject = button.data('subject');  // Get the 'subject' data attribute
+                var body = button.data('body');  // Get the 'body' data attribute
+
+                
+                // Set the values for Subject and Body fields in the modal
+                document.getElementById("emailSubject").value = subject;
+                document.getElementById("emailBody").value = body;
+
+                console.log("Subject and Body populated.");
+            });
+
+            // Handle form submission with AJAX
+            $('#submitNotificationForm').click(function (event) {
+            event.preventDefault();  // Prevent default form submission
+            clearErrors();  // Clear previous error messages
+
+            var form = $('#createNotificationForm');
+            var Subject = document.getElementById("emailSubject").value;
+            var Body = document.getElementById("emailBody").value;
+            // Capture selected contact IDs when the modal opens
+                var selectedContactIds = [];
+                var contacts = document.getElementById("availContacts").selectedOptions;
+
+                for (var i = 0; i < contacts.length; i++) {
+                    selectedContactIds.push(contacts[i].value); // Add the selected contact IDs
+                }
+
+                // Store the selected contact IDs in the hidden input field
+                document.getElementById("selectedContactIds").value = selectedContactIds.join(",");
+
+                // Get the selected contact IDs from the hidden input field
+            var selectedContactIds = document.getElementById("selectedContactIds").value; // Get selected contacts
+
+            console.log("Submitting form with contact IDs:", selectedContactIds);
+
+            // Validate the form
+            if (form.valid()) {
+                $.ajax({
+                    type: "POST",
+                    url: '/Contact/Notification',  // Ensure this URL is correct
+                    data: {
+                        selectedContactIds: selectedContactIds,
+                        Subject: Subject,
+                        emailContent: Body
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            $('#addNotificationModal').modal('hide');
+                            location.reload(); // Refresh page to reflect changes
+                        } else {
+                            console.error("Error: " + response.message);
+                            showErrorMessage(response.message); // Show error messages
+                        }
+                    },
+                    error: function (xhr) {
+                        console.error("Error: ", xhr);
+                        showErrorMessage("An unexpected error occurred.");
+                    }
+                });
+            }
+        });
+
+
+            // Function to show error messages in the modal
+            function showErrorMessage(message) {
+                var ul = document.getElementById("ErrorList");
+                ul.innerHTML = "";  // Clear previous errors
+
+                // Split and display each error message
+                var errors = message.split("|");
+                errors.forEach(function (error) {
+                    var li = document.createElement("li");
+                    li.innerHTML = error;
+                    ul.appendChild(li);
+                });
+            }
+
+            // Function to clear previous error messages
+            function clearErrors() {
+                var ul = document.getElementById("ErrorList");
+                ul.innerHTML = "";  // Clear previous error messages
+            }
+        });
+    </script>
+
+}

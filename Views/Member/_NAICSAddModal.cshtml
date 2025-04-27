@@ -1,0 +1,17 @@
+﻿<!-- NAICS Modal -->
+<div class="modal fade" id="naicsModal" tabindex="-1" role="dialog" aria-labelledby="naicsModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="naicsModalLabel">Add New NAICS</h4>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+                @{
+                    var s = new NAICSCode();
+                    <partial name="_NAICSAdd" model="s" />
+                }
+            </div>
+        </div>
+    </div>
+</div>

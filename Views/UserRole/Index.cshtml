@@ -1,0 +1,40 @@
+﻿@model IEnumerable<NIA_CRM.ViewModels.UserVM>
+
+@{
+    ViewBag.Title = "User Roles";
+}
+
+<h2>User Role Assignments</h2>
+
+<table class="table">
+    <tr>
+        <th scope="col" class="table-head">
+            @Html.DisplayNameFor(model => model.UserName)
+        </th>
+        <th scope="col" class="table-head">
+            @Html.DisplayNameFor(model => model.UserRoles)
+        </th>
+        <th scope="col" class="table-head">Actions</th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.UserName)
+            </td>
+            <td>
+                @{
+                    foreach (var r in item.UserRoles)
+                    {
+                        @:  @r <br />
+                    }
+                }
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { id = item.Id }, new { @class = "btn btn-secondary mb-2" })
+            </td>
+        </tr>
+    }
+
+</table>

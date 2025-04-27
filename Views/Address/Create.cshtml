@@ -1,0 +1,113 @@
+﻿@model NIA_CRM.Models.Address
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Create Address</h1>
+<partial name="_Notification" />
+
+@if (ViewBag.MemberName != null)
+{
+    <div class="alert alert-info">
+        <strong>Member: </strong> @ViewBag.MemberName
+    </div>
+}
+<hr />
+
+<form asp-action="Create">
+    <div class="card card-body bg-light text-black">
+        <input type="hidden" asp-for="MemberId" />
+
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <div class="row">
+            <!-- First Column -->
+            <div class="col-md-6">
+                @if (ViewBag.MemberName == null)
+                {
+                    <div class="form-group">
+                        <label asp-for="MemberId" class="control-label"></label>
+                        <select asp-for="MemberId" class="form-control" asp-items="ViewBag.MemberId"></select>
+                    </div>
+                }
+               
+                <div class="form-group">
+                    <label asp-for="AddressLine1" class="control-label"></label>
+                    <span class="required-label">(required)</span>
+                    <input asp-for="AddressLine1" class="form-control" placeholder="Enter Address Line 1" />
+                    <span asp-validation-for="AddressLine1" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="AddressLine2" class="control-label"></label>
+                    <input asp-for="AddressLine2" class="form-control" placeholder="Enter Address Line 2 (Optional)" />
+                    <span asp-validation-for="AddressLine2" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="City" class="control-label"></label>
+                    <span class="required-label">(required)</span>
+                    <input asp-for="City" class="form-control" placeholder="Enter City" />
+                    <span asp-validation-for="City" class="text-danger"></span>
+                </div>
+
+            </div>
+
+            <!-- Second Column -->
+            <div class="col-md-6">
+                
+
+                <div class="form-group">
+                    <label asp-for="StateProvince" class="control-label"></label>
+                    <span class="required-label">(required)</span>
+                    <select asp-for="StateProvince" class="form-control" asp-items="Html.GetEnumSelectList<Province>()"></select>
+                    <span asp-validation-for="StateProvince" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="PostalCode" class="control-label"></label>
+                    <span class="required-label">(required)</span>
+                    <input asp-for="PostalCode" name="PostalCode" class="form-control" placeholder="Enter Postal Code (e.g., A1A 1A1)" />
+                    <span asp-validation-for="PostalCode" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="position-bottom-left mt-3">
+        <a asp-action="Index" asp-controller="Member" class="btn btn-dark me-2">Back to List</a>
+        <input type="submit" value="Next" class="btn btn-primary" />
+    </div>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        // Postal Code Validation (Canadian format)
+        const postalCodeInput = document.querySelector('input[name="PostalCode"]');
+
+        postalCodeInput.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\s/g, '').toUpperCase(); // Remove spaces and convert to uppercase
+
+            // Canadian Postal Code Format: A1A 1A1
+            const postalCodePattern = /^[A-Za-z]\d[A-Za-z]\d[A-Za-z]\d$/;
+
+            // Apply formatting
+            if (value.length <= 3) {
+                e.target.value = value.slice(0, 3);
+            } else if (value.length <= 6) {
+                e.target.value = `${value.slice(0, 3)} ${value.slice(3, 6)}`;
+            }
+
+            // Validate the format
+            if (!postalCodePattern.test(value)) {
+                postalCodeInput.setCustomValidity('Postal code must be in the format "A1A 1A1"');
+            } else {
+                postalCodeInput.setCustomValidity('');
+            }
+        });
+    </script>
+}

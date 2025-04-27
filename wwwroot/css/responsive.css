@@ -1,0 +1,912 @@
+﻿/* responsive.css */
+/*Scroll bars design*/
+/* Target the scrollbar */
+::-webkit-scrollbar {
+    width: 12px; /* Horizontal scrollbar size */
+    height: 12px; /* Vertical scrollbar size */
+}
+
+/* Customize the track (background of the scrollbar) */
+::-webkit-scrollbar-track {
+    background: none; /* Light gray background */
+    border-radius: 10px;
+}
+
+/* Customize the handle (the part that the user drags) */
+::-webkit-scrollbar-thumb {
+    background: #888; /* Gray color for the handle */
+    border-radius: 10px;
+}
+
+    /* Change the color of the handle when hovered */
+    ::-webkit-scrollbar-thumb:hover {
+        background: #555; /* Darker gray for hover */
+    }
+
+/* Customize the scrollbar corner (where horizontal and vertical meet) */
+::-webkit-scrollbar-corner {
+    background: #f1f1f1;
+}
+
+.vidget-MemebrCount, .vidget-Active, .vidget-Archived {
+    height: 250px;
+    background-image: url('/images/TotalVidget.jpg') !important; /* Replace with your image path */
+    overflow: hidden;
+    background-size: cover; /* Ensures the image covers the div */
+    background-position: center; /* Centers the image */
+    background-repeat: no-repeat; /* Prevents repeating */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.vidget-MemebrCity {
+    height: 250px;
+    background-image: url('/images/CityVidget.jpg') !important;
+    overflow: hidden;
+    background-size: cover; /* Ensures the image covers the div */
+    background-position: center; /* Centers the image */
+    background-repeat: no-repeat; /* Prevents repeating */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.vidget-Memebr {
+    height: 250px;
+    background-image: url('/images/MembershipVidget.jpg') !important; /* Replace with your image path */
+    overflow: hidden;
+    background-size: cover; /* Ensures the image covers the div */
+    background-position: center; /* Centers the image */
+    background-repeat: no-repeat; /* Prevents repeating */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.vidget-Sector {
+    height: 250px;
+    background-image: url('/images/Sector.jpg') !important; /* Replace with your image path */
+    overflow: hidden;
+    background-size: cover; /* Ensures the image covers the div */
+    background-position: center; /* Centers the image */
+    background-repeat: no-repeat; /* Prevents repeating */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.vidget-Tag {
+    height: 250px;
+    background-image: url('/images/Tag.jpg') !important; /* Replace with your image path */
+    overflow: hidden;
+    background-size: cover; /* Ensures the image covers the div */
+    background-position: center; /* Centers the image */
+    background-repeat: no-repeat; /* Prevents repeating */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.vidget-Retention {
+    height: 250px;
+    background-image: url('/images/Rate.jpg') !important; /* Replace with your image path */
+    overflow: hidden;
+    background-size: cover; /* Ensures the image covers the div */
+    background-position: center; /* Centers the image */
+    background-repeat: no-repeat; /* Prevents repeating */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+
+/* Base Styles - Mobile First */
+body {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 14px; /* Default font size for mobile */
+}
+
+/* General Button Styles */
+.btn-primary {
+    background-color: #A61C1C !important;
+    border-color: #A61C1C !important;
+}
+.form-check-input:checked {
+    background-color: #A61C1C;
+    border-color: #A61C1C;
+}
+
+.btn-primary:hover {
+    background-color: #8C1818 !important;
+    border-color: #A61C1C !important;
+}
+
+.btn-light {
+    border-width: 2px;
+    border-color: #434343 !important;
+}
+
+.btn-light:hover {
+    background-color: lightgray !important;
+}
+
+.btn-secondary {
+    border-width: 2px;
+    border-color: #A61C1C !important;
+    color:black;
+    background-color: white;
+}
+
+    .btn-secondary:hover {
+        background-color: #EE9191 !important;
+        color:black;
+    }
+
+    .page-item.active .page-link {
+        background-color: #A61C1C !important;
+        border-color: #A61C1C;
+    }
+.position-bottom-left {
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+    margin-top: 10px;
+}
+
+.otherPic {
+    max-height: 300px;
+    max-width: 400px;
+}
+
+.page-link, .page-link:hover {
+    color: black;
+}
+
+.btn-link{
+    color: white;
+}
+
+.btn-link:hover {
+    color: white;
+}
+
+.btn-dark {
+    background-color: #434343 !important;
+}
+
+    .btn-dark:hover {
+        background-color: #2B2B2B !important;
+    }
+
+#btnBackToTop{
+    border-radius: 5px;
+}
+.logout-btn {
+    background-color: #434343;
+    border-width: 2px;
+    transition: width 0.3s ease, height 0.3s ease, padding 0.3s ease;
+    border-radius: 5px;
+    width: 100%;
+}
+
+    .logout-btn:hover {
+        background-color: #2B2B2B !important;
+    }
+.custom-filter-badge {
+    background-color: #434343 !important;
+    height: 40px !important;
+}
+
+.member-count-link {
+    color: inherit !important; /* Inherit text color from parent */
+}
+
+    .member-count-link:hover {
+        color: #A61C1C !important; /* Change color to red on hover */
+    }
+
+a::after {
+    color: black !important;
+}
+/* Card Styles */
+.card {
+    border: none;
+}
+
+.card-body {
+    border-radius: 20px;
+    margin-top: 4px;
+    border: solid !important;
+    border-color: #A61C1C !important;
+    overflow: hidden;
+}
+
+.card-text, .card-title{
+    color: black;
+    
+}
+
+.fixed-text {
+    position: absolute;
+    bottom: 100px; /* Ensures all numbers align at the same level */
+    left: 10px;
+    font-size: 2rem;
+    font-weight: bold;
+    color: black;
+    margin-bottom: 0;
+}
+
+.title-vidget{
+    font-size:17px;
+}
+
+.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+    background-color: #A61C1C !important;
+}
+
+.nav-link{
+    color: black;
+}
+/* Sticky Buttons */
+.sticky-buttons {
+    position: sticky !important;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    gap: 10px;
+}
+
+.sticky-buttons-container {
+    background-color: white;
+    padding: 10px 15px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    justify-content: flex-end;
+}
+
+
+
+/* Sidebar */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: -250px;
+    height: 100vh;
+    width: 250px;
+    background-color: #434343;
+    transition: left 0.3s ease;
+    z-index: 1070;
+    padding-top: 60px;
+}
+
+.sidebar.show {
+    left: 0;
+}
+
+.sidebar ul {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.sidebar ul li {
+    padding: 10px 10px;
+}
+
+.sidebar ul li a {
+    text-decoration: none;
+    color: #333;
+    font-size: 16px;
+    display: block;
+}
+
+.sidebar ul li a:hover {
+    background-color: #2B2B2B;
+    border-radius: 5px;
+}
+
+h1 {
+    margin-top: 20px; /* Adjust as needed */
+}
+
+h2 {
+    margin-top: 20px;
+    /* Adjust as needed */
+    margin-bottom: 20px;
+}
+
+
+
+.sr-only {
+    border: 0;
+    clip: rect(0,0,0,0);
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: inherit;
+}
+/* Icons*/
+
+.fas.fa-lightbulb {
+    font-size: 20px;
+    color: white;
+}
+
+/* Main Content */
+
+.main-content {
+    margin-left: 250px;
+    transition: margin-left 0.3s ease;
+    padding: 20px;
+    padding-top: 63px;
+}
+
+    
+
+/* Hamburger Button */
+#toggleSidebar {
+    position: fixed;
+    top: 15px;
+    left: 32px;
+    z-index: 1100;
+    background-color: #434343;
+
+    z-index: 1200;
+
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 15px;
+    font-size: 18px;
+    cursor: pointer;
+}
+    #toggleSidebar:hover {
+        background-color: #2B2B2B !important;
+    }
+
+    #toggleSidebar:focus {
+        outline: none;
+    }
+
+/* Highlight row on hover */
+.clickable-row:hover {
+    background-color: #f5f5f5; /* Light grey background */
+    cursor: pointer; /* Hand cursor */
+}
+
+
+/* Table Styles */
+.table td, .table th {
+    vertical-align: middle;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    padding: 8px;
+    text-align: left;
+}
+
+.table-head-static {
+    position: sticky !important;
+    top: 0;
+    left: 0;
+    z-index: 1050;
+    background: #A61C1C !important;
+    color: #fff;
+    width: 200px;
+    border-right: 1px solid #dee2e6;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.table-head {
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+    background: #A61C1C !important;
+    color: #fff;
+    border-right: 1px solid #dee2e6;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.table-row-static {
+    position: sticky;
+    left: 0;
+    z-index: 1050;
+    background: #f8f9fa !important;
+}
+.table-row-static img{
+    display: block;
+    max-width: 60px !important;
+}
+
+table {
+    table-layout: auto;
+    width: 100%; /* Ensure it adapts to available space */
+    margin-top: 10px;
+}
+
+td, th {
+    white-space: nowrap;
+    padding: 10px;
+}
+#previewContainer {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    min-width: 380px;
+/*    width: auto;*/
+    height: 100%;
+    padding-right: 8px;
+    padding-top: 5px;
+    background-color: #fff;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.3);
+    z-index: 9999;
+    visibility: hidden; /* Initially hide */
+    overflow-y:auto;
+}
+#previewContainer .card-body, #previewContainer img{
+    margin-left: 10px;
+}
+#previewContainer.visible {
+    right: 0;
+    visibility: visible; /* Make visible when showing */
+    transition: 1s ease-in-out;
+}
+
+#previewContainer.hidden {
+    visibility: hidden; /* Hide the container */
+    transition: 1s ease-in-out;
+}
+
+.clickable-row:hover {
+    background-color: #d3d3d3; /* Light grey background */
+    color: #333;
+}
+
+#footer-scroll #btnBackToTop {
+    text-decoration: none;
+    border-width: 0;
+    margin-top: 5px;
+}
+
+/* Ensure the Archived Contacts and Archived Members are on separate lines */
+#archivedCollapse .ms-3 {
+    display: block;
+    margin-bottom: 5px; /* Space between the items */
+}
+
+/* Arrow rotation for collapsible */
+.arrow-indicator {
+    transition: transform 0.3s ease;
+}
+
+/* Rotate the arrow when the dropdown is open */
+.collapse.show + a .arrow-indicator {
+    transform: rotate(180deg);
+}
+
+/*Index Event*/
+.participant-badge {
+    background-color: white !important;
+    color: #434343 !important;
+    border: 2px solid #434343 !important;
+    padding: 2px 5px;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.member-toggle {
+    text-decoration: none;
+    border-bottom: 1px solid #434343;
+    color: #434343;
+    font-weight: bold;
+}
+
+    .member-toggle:hover {
+        text-decoration: none;
+        border-bottom: 1px solid #434343;
+        color: black;
+    }
+
+/*Drag and drop for member edit and create view*/
+
+.drag-drop-area {
+    width: 100%;
+    height: 100%;
+    border: 2px dashed #ccc;
+    text-align: center;
+    line-height: 150px;
+    color: #ccc;
+    position: relative; /* Allows button to be positioned inside the area */
+}
+
+#selectImageButton {
+    position: absolute;
+    bottom: 10px; /* Position button near the bottom of the area */
+    left: 50%;
+    transform: translateX(-50%); /* Center the button horizontally */
+}
+
+#imagePreviewContainer {
+    margin-top: 10px;
+    text-align: center;
+}
+
+#imagePreview {
+    max-width: 200px;
+    max-height: 200px;
+}
+
+#previewControls, #editControls {
+    margin-top: 10px;
+    text-align: center;
+}
+
+    #previewControls button, #editControls button {
+        margin: 5px;
+    }
+
+/* Dark Mode */
+.theme-toggle-btn {
+    height: 40px;
+    border-radius: 5px;
+    border: none;
+    background-color: #e0e0e0;
+    color: black;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 12px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+    .theme-toggle-btn i {
+        font-size: 16px;
+    }
+/* Collapse behavior for theme toggle button */
+.sidebar:not(.show) #theme-toggle {
+    width: 26px;
+    height: 40px;
+    padding: 0;
+    justify-content: center;
+    transition: width 0.3s ease, height 0.3s ease, padding 0.3s ease;
+}
+
+    .sidebar:not(.show) #theme-toggle .theme-toggle-text {
+        display: none;
+        transition: width 0.3s ease, height 0.3s ease, padding 0.3s ease;
+    }
+
+.dark-mode .theme-toggle-btn {
+    background-color: #2c2c2c;
+    border-color: #2c2c2c !important;
+    color: #f0f0f0;
+}
+
+.dark-mode .input-group-text{
+    background-color:#121212;
+}
+.dark-mode .logout-btn {
+    background-color: #434343 !important;
+    border-width: 2px !important;
+    border-color: #434343 !important;
+}
+
+    .dark-mode .logout-btn:hover {
+        background-color: #2B2B2B !important;
+    }
+
+.dark-mode, .dark-mode #btnBackToTop {
+    background-color: #121212;
+    color: #ffffff;
+}
+    .dark-mode .modal-content, .dark-mode .alert-info  {
+        background-color: #121212;
+    }
+
+    .dark-mode #toggleSidebar {
+        background-color: #434343 !important;
+    }
+
+    .dark-mode .navbar {
+        background-color: #1e1e1e;
+    }
+
+    .dark-mode .card {
+        background-color: #1e1e1e;
+        color: #ffffff;
+    }
+
+    .dark-mode button, .dark-mode .btn-secondary, .dark-mode .btn-light {
+        background-color: #333 !important;
+        color: white;
+        border: 2px solid #555;
+    }
+
+        .dark-mode .btn-secondary:hover, .dark-mode .btn-light:hover {
+            background-color: #292929 !important;
+            color: white !important;
+        }
+
+    .dark-mode td {
+        color: white;
+    }
+
+    .dark-mode #previewContainer, .dark-mode .sticky-buttons-container, .dark-mode .info-box, .dark-mode .grid-stack.dashboard-charts {
+        background-color: #121212;
+    }
+
+    .dark-mode .card-body {
+        background-color: #121212 !important;
+        border-color: white !important;
+    }
+
+    .dark-mode p, .dark-mode dt, .dark-mode dd, .dark-mode h1, .dark-mode h2,
+    .dark-mode h4, .dark-mode h5, .dark-mode label, .dark-mode strong, .dark-mode #text, .dark-mode span,
+    .dark-mode .card-title, .dark-mode .card-text, .dark-mode .member-toggle, .dark-mode a {
+        color: white;
+    }
+
+    .dark-mode tr:hover {
+        background-color: #333 !important;
+    }
+
+    .dark-mode .member-toggle:hover, .dark-mode a::after , .dark-mode a:hover{
+        color: gray !important;
+    }
+    /* Applies only in dark mode */
+    .dark-mode input[type="text"],
+    .dark-mode input[type="email"],
+    .dark-mode input[type="password"],
+    .dark-mode input[type="number"],
+    .dark-mode input[type="search"],
+    .dark-mode input[type="tel"],
+    .dark-mode input[type="url"],
+    .dark-mode input[type="date"],
+    .dark-mode input[type="datetime-local"],
+    .dark-mode input[type="month"],
+    .dark-mode input[type="week"],
+    .dark-mode input[type="time"],
+    .dark-mode input[type="file"],
+    .dark-mode textarea,
+    .dark-mode select {
+        background-color: #333;
+        color: #fff;
+        border: 1px solid #555;
+    }
+
+        /* Optional: style placeholder text in dark mode */
+        .dark-mode input::placeholder,
+        .dark-mode textarea::placeholder {
+            color: #aaa;
+        }
+
+
+    .dark-mode .vidget-MemebrCount, .dark-mode .vidget-Active, .dark-mode .vidget-Archived {
+        background-image: url('/images/MembersDark.jpg') !important; /* Replace with your image path */
+    }
+
+
+    .dark-mode .vidget-MemebrCity {
+        background-image: url('/images/CityDark.jpg') !important; /* Replace with your image path */
+    }
+
+    .dark-mode .vidget-Memebr {
+        background-image: url('/images/MembershipDark.jpg') !important; /* Replace with your image path */
+    }
+
+    .dark-mode  .vidget-Sector {
+        background-image: url('/images/SectorDark.jpg') !important; /* Replace with your image path */
+    }
+
+    .dark-mode .vidget-Tag {
+        background-image: url('/images/TagDark.jpg') !important; /* Replace with your image path */
+    }
+
+    .dark-mode  .vidget-Retention {
+        background-image: url('/images/RateDark.jpg') !important; /* Replace with your image path */
+    }
+/*Cards on dashboard styles*/
+/* Styling for the dots (black color) */
+/* Dropdown menu styling */
+.dropdown-menu {
+    background-color: #444; /* Darker background for the dropdown */
+    color: white;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.dropdown-item {
+    color: white; /* White text color for dropdown items */
+    padding: 10px;
+    cursor: pointer;
+}
+
+    .dropdown-item:hover {
+        background-color: #555; /* Hover effect on dropdown items */
+    }
+
+/* Title styling */
+#members-dynamic-title {
+    opacity: 1;
+    transition: opacity 0.5s ease-in-out;
+}
+
+/* Count styling */
+#members-dynamic-count, #membership-count, .widget-count {
+    opacity: 1;
+    padding-left: calc(var(--bs-gutter-x)* .28);
+    transition: opacity 0.5s ease-in-out;
+}
+
+.fixed-text {
+    font-size: 2em;
+    font-weight: bold;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.hidden {
+    opacity: 0;
+}
+
+.number-transition {
+    transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
+}
+
+
+/* Style for the dots button */
+.citydrop {
+    font-size: 18px;
+    color: black;
+    cursor: pointer;
+    background: none;
+    border: none;
+    outline: none;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 0px 7px;
+    background-color: rgba(85, 85, 85, 1.7);
+    z-index: 10;
+}
+
+.dots {
+    font-size: 16px;
+    color: white !important;
+    text-decoration: none !important;
+}
+
+    .dots:hover {
+        color: white !important;
+    }
+
+/* Dropdown positioning fix */
+.dropdown {
+    position: relative;
+}
+
+/* Strong overrides for Bootstrap's inline styles */
+.dropdown-menu {
+    position: absolute !important;
+    left: auto !important;
+    right: 0 !important;
+    transform: translateX(0) !important;
+    top: 100% !important;
+    will-change: auto !important;
+    margin-top: 40px !important;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* Ensure parent containers don't clip the dropdowns */
+.card, .card-body, .col-md-4, .dropdown {
+    overflow: visible !important;
+}
+
+@media (max-width: 768px) {
+    body {
+        font-size: 14px;
+    }
+
+    .navbar {
+        font-size: 14px;
+    }
+
+    .main-content {
+        margin-left: 0 !important;
+    }
+
+    .container {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+   
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .navbar {
+        font-size: 16px;
+    }
+
+    .container {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    .row {
+        flex-direction: row;
+    }
+}
+
+/*@media (min-width: 1025px) {
+    .navbar {
+        font-size: 18px;
+    }
+
+    .main-content {
+        margin-left: 250px;
+    }
+}
+*/
+@media screen and (max-width: 1024px) { /* Adjust based on your tablet breakpoint */
+    h1 {
+        margin-top: 20px; /* Adjust spacing for dashboard title */
+        font-size: 28px; /* Reduce size for better fit */
+    }
+
+    h2 {
+        margin-top: 20px;
+        margin-bottom: 15px;
+        font-size: 22px;
+    }
+
+    .dashboard-cards {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center; /* Center cards */
+        gap: 10px; /* Space between cards */
+    }
+
+        .dashboard-cards .card {
+            width: 100%; /* Make cards take full width on smaller screens */
+            max-width: 300px; /* Limit size for consistency */
+        }
+
+    .filter-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .add-member-btn {
+        width: 100%;
+        max-width: 200px; /* Adjust button size */
+    }
+
+    table {
+        width: 100%;
+        overflow-x: auto; /* Allow scrolling if needed */
+    }
+}
+
+
+@media (min-width: 1440px) {
+    /* Medium desktop styles */
+}
+
+@media (min-width: 1920px) {
+    /* Large desktop styles */
+}
+
+@media (min-width: 2560px) {
+    /* 4K UHD styles */
+}

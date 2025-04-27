@@ -1,0 +1,17 @@
+﻿@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" id="errorAlert">
+        @TempData["Success"]
+        <button type="button" class="btn btn-link text-dark" data-bs-dismiss="alert" aria-label="Close" style="position: absolute; right: 10px; bottom: 0px; font-size: 1.5rem; padding: 0.5rem 1rem;">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <script type="text/javascript">
+        // Automatically hide the error alert after 5 seconds
+        setTimeout(function() {
+            $('#errorAlert').fadeOut('slow');
+                        // Send an AJAX request to clear TempData
+            fetch('/Home/ClearSuccessMessage', { method: 'POST' });
+        }, 5000); // 5000 ms = 5 seconds
+    </script>
+}

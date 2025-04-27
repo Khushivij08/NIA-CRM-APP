@@ -1,0 +1,97 @@
+﻿﻿ /* Base sidebar styles */
+/*.nav {
+    margin-top: 55px
+}*/
+.logo {
+    max-height: 80px;
+    max-width: 250px;
+    position: relative;
+    margin-top: 20px;
+    border: none;
+}
+
+@media (min-width: 1024px) {
+    /* Medium desktop styles */
+    #toggleSidebar {
+        left: 8px;
+    }
+
+    .logo {
+        max-width: 200px;
+        margin-top: 10px;
+    }
+
+    .sidebar {
+        width: 300px;
+        height: 100vh;
+        transition: width 0.3s ease-in-out;
+        position: fixed;
+        top: 0;
+        left: 0;
+        overflow-x: hidden;
+    }
+
+        .sidebar .nav-link {
+            display: flex;
+            align-items: center;
+            color: white;
+            text-decoration: none;
+            padding: 10px 10px 10px 0;
+            white-space: nowrap;
+        }
+
+        .sidebar .icon {
+            font-size: 20px;
+            min-width: 32px;
+            text-align: left;
+            color: white;
+            margin-left: 3px;
+        }
+
+
+        /* Collapsed Sidebar */
+        .sidebar:not(.show) {
+            width: 58px;
+        }
+
+        .sidebar ul li {
+            padding: 0;
+        }
+
+        /* Hide scrollbar but keep content scrollable */
+        .sidebar:not(.show) {
+            overflow: scroll; /* Allows scrolling */
+        }
+
+            /* For WebKit-based browsers (Chrome, Safari, etc.), hide the scrollbar */
+            .sidebar:not(.show)::-webkit-scrollbar {
+                display: none;
+            }
+
+        /* Optional: For Firefox, use this to hide the scrollbar */
+        .sidebar:not(.show) {
+            scrollbar-width: none; /* Firefox */
+
+                
+        }
+    /*.sidebar:not(.show) .text-white {
+    display: none;
+}*/
+
+    /*.sidebar:not(.show) .nav-link {
+    justify-content: center;
+    padding: 10px 10px 10px 0;
+}*/
+
+    /* Main content styling */
+    .main-content {
+        margin-left: 300px; /* Default margin when sidebar is open */
+        transition: margin-left 0.3s ease-in-out;
+        padding: 20px;
+    }
+
+    /* When sidebar is collapsed */
+    .sidebar-collapsed {
+        margin-left: 60px;
+    }
+}

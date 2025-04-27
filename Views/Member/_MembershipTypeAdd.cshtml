@@ -1,0 +1,28 @@
+﻿@model NIA_CRM.Models.MembershipType
+
+<form asp-controller="MembershipType" asp-action="Create" id="createMembershipTypeForm">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="text-danger validation-summary-errors">
+                <ul id="ErrorList"></ul>
+            </div>
+
+
+            <label asp-for="TypeName" class="control-label">Membership Type Name</label>
+            <input asp-for="TypeName" class="form-control" />
+            <span asp-validation-for="TypeName" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="TypeDescr" class="control-label">Membership Type Description</label>
+            <textarea asp-for="TypeDescr" class="form-control"></textarea>
+            <span asp-validation-for="TypeDescr" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            @* <button type="submit" id="submitMembershipTypeCreate" class="btn btn-outline-dark">Save</button> *@
+            <input type="submit" value="Create" id="submitMembershipTypeCreate" class="btn btn-outline-secondary" />
+
+        </div>
+    </div>
+</form>
